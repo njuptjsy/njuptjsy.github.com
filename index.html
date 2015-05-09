@@ -81,20 +81,20 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="" itemprop="url"></a>
+      <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github" itemprop="url">How to deploy blog on github</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="John Doe" target="_blank" itemprop="author">John Doe</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T06:56:32.431Z" itemprop="datePublished"> 發表於 2015-05-09</time>
+    <time datetime="2015-05-09T06:58:53.183Z" itemprop="datePublished"> 發表於 2015-05-09</time>
     
   </p>
 </header>
     <div class="article-content">
         
-        <h2 id="title:how_to_deploy_blog_in_github">title:how to deploy blog in github</h2><h1 id="安装准备">安装准备</h1><p>首先需要有自己的github并且创建自己的个人站点，下载好<a href="https://nodejs.org/&quot;Node官网&quot;" target="_blank" rel="external">Node.j</a></p>
+        <h1 id="安装准备">安装准备</h1><p>首先需要有自己的github并且创建自己的个人站点，下载好<a href="https://nodejs.org/&quot;Node官网&quot;" target="_blank" rel="external">Node.j</a></p>
 <h1 id="安装Hexo">安装Hexo</h1><p>之前试过使用jekyll是在是觉累不爱了，国内连ruby的官方源都被墙了，必须要换淘宝源。如果想使用jekyll搭建可以参考<a href="http://www.cnblogs.com/purediy/archive/2013/03/07/2948892.html" target="_blank" rel="external">这篇文章</a>。</p>
 <p>安装好Node.js之后，重启git shell，使用如下命令安装hexo<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo</span><br></pre></td></tr></table></figure></p>
 <p>在磁盘上新建一个hexo文件夹，在git shell中将工作路径切换到该文件夹下，运行如下命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo init</span><br></pre></td></tr></table></figure></p>
@@ -103,7 +103,9 @@
 <h2 id="修改主题">修改主题</h2><p>如果不想用原有的主题可以使用其他主题，以我的主题为例<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/wuchong/jacman.git themes/jacman</span><br></pre></td></tr></table></figure></p>
 <p>接着，修改Hexo根目录下的config.yml配置文件中的theme属性，将其设置为jacman。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">theme: jacman</span><br></pre></td></tr></table></figure></p>
 <p>使用下面的命令更新主题</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">	$ <span class="built_in">cd</span> themes/jacman</span><br><span class="line">	$ git pull</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">这时可以使用这三条命令来预览现在的blog</span><br><span class="line"></span><br><span class="line">``` bash</span><br><span class="line">	$ hexo clean</span><br><span class="line">	$ hexo g</span><br><span class="line">	$ hexo s</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> themes/jacman</span><br><span class="line">$ git pull</span><br></pre></td></tr></table></figure>
+<p>这时可以使用这三条命令来预览现在的blog</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean</span><br><span class="line">$ hexo g</span><br><span class="line">$ hexo s</span><br></pre></td></tr></table></figure>
 <h1 id="部署到Github">部署到Github</h1><p>部署到Github前需要配置_config.yml文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: git</span><br><span class="line">  repository: git@github.com:njuptjsy/njuptjsy.github.com.git</span><br><span class="line">  branch: master</span><br><span class="line">  message:XXXX</span><br></pre></td></tr></table></figure></p>
 <p>这一步要注意的有两点，第一是type:后面需要接一个空格在接上需要的值，而且type:的属性相对于deploy都有两个空格的缩进。第二type:github这个类型不再支持了，需要先<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></p>
 <p>在把type:改成git<br>下面提交到github<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean</span><br><span class="line">$ hexo generate</span><br><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure></p>
