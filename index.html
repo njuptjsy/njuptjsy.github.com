@@ -1,28 +1,28 @@
 
  <!DOCTYPE HTML>
-<html >
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   
-    <title>Hexo</title>
+    <title>More Than Words</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
-    <meta name="author" content="John Doe">
+    <meta name="author" content="Siyu Jin">
     
 
     
-    <meta name="description">
+    <meta name="description" content="学习总结 思考感悟 知识管理">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
-<meta property="og:site_name" content="Hexo">
-<meta property="og:description">
+<meta property="og:title" content="More Than Words">
+<meta property="og:url" content="http://njuptjsy.github.io/index.html">
+<meta property="og:site_name" content="More Than Words">
+<meta property="og:description" content="学习总结 思考感悟 知识管理">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
-<meta name="twitter:description">
+<meta name="twitter:title" content="More Than Words">
+<meta name="twitter:description" content="学习总结 思考感悟 知识管理">
 
     
-    <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
     
     
     <link rel="icon" href="/img/favicon.ico">
@@ -40,14 +40,14 @@
 <div>
 		
 			<div id="imglogo">
-				<a href="/"><img src="/img/logo.png" alt="Hexo" title="Hexo"/></a>
+				<a href="/"><img src="/img/logo.png" alt="More Than Words" title="More Than Words"/></a>
 			</div>
 			
 			<div id="textlogo">
-				<h1 class="site-name"><a href="/" title="Hexo">Hexo</a></h1>
-				<h2 class="blog-motto"></h2>
+				<h1 class="site-name"><a href="/" title="More Than Words">More Than Words</a></h1>
+				<h2 class="blog-motto">Perfection&#39;snot attainable, but if we chase it we can catch excellence..</h2>
 			</div>
-			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜單">
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
 			</a></div>
 			<nav class="animated">
 				<ul>
@@ -64,7 +64,7 @@
 					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
 						<label>Search</label>
 						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
-						<input type="hidden" name="q" value="site:yoursite.com">
+						<input type="hidden" name="q" value="site:njuptjsy.github.io">
 					</form>
 					
 					</li>
@@ -85,10 +85,10 @@
   </h1>
   <p class="article-author">By
        
-		<a href="/about" title="John Doe" target="_blank" itemprop="author">John Doe</a>
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T06:58:53.183Z" itemprop="datePublished"> 發表於 2015-05-09</time>
+    <time datetime="2015-05-09T07:33:19.708Z" itemprop="datePublished"> 发表于 2015-05-09</time>
     
   </p>
 </header>
@@ -109,6 +109,8 @@
 <h1 id="部署到Github">部署到Github</h1><p>部署到Github前需要配置_config.yml文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: git</span><br><span class="line">  repository: git@github.com:njuptjsy/njuptjsy.github.com.git</span><br><span class="line">  branch: master</span><br><span class="line">  message:XXXX</span><br></pre></td></tr></table></figure></p>
 <p>这一步要注意的有两点，第一是type:后面需要接一个空格在接上需要的值，而且type:的属性相对于deploy都有两个空格的缩进。第二type:github这个类型不再支持了，需要先<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></p>
 <p>在把type:改成git<br>下面提交到github<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean</span><br><span class="line">$ hexo generate</span><br><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure></p>
+<h1 id="修改Hexo设置">修改Hexo设置</h1><p>网站搭建完成后，就可以根据自己爱好来对Hexo生成的网站进行设置了，对整站的设置，只要修改项目目录的_config.yml就可以了，这是我的设置，可供参考。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Hexo Configuration</span></span><br><span class="line"><span class="comment">## Docs: http://hexo.io/docs/configuration.html</span></span><br><span class="line"><span class="comment">## Source: https://github.com/hexojs/hexo/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Site</span></span><br><span class="line">title: More Than Words</span><br><span class="line">subtitle:Perfection<span class="string">'snot attainable, but if we chase it we can catch excellence..</span><br><span class="line">description:学习总结 思考感悟 知识管理</span><br><span class="line">author: Siyu Jin</span><br><span class="line">language:zh-CN</span><br><span class="line">timezone:</span><br><span class="line"></span><br><span class="line"># URL</span><br><span class="line">## If your site is put in a subdirectory, set url as '</span>http://yoursite.com/child<span class="string">' and root as '</span>/child/<span class="string">'</span><br><span class="line">url: http://njuptjsy.github.io/</span><br><span class="line">root: /</span><br><span class="line">permalink: :year/:month/:day/:title/</span><br><span class="line">permalink_defaults:</span><br><span class="line"></span><br><span class="line"># Directory</span><br><span class="line">source_dir: source</span><br><span class="line">public_dir: public</span><br><span class="line">tag_dir: tags</span><br><span class="line">archive_dir: archives</span><br><span class="line">category_dir: categories</span><br><span class="line">code_dir: downloads/code</span><br><span class="line">i18n_dir: :lang</span><br><span class="line">skip_render:</span><br><span class="line"></span><br><span class="line"># Writing</span><br><span class="line">new_post_name: :title.md # File name of new posts</span><br><span class="line">default_layout: post</span><br><span class="line">titlecase: false # Transform title into titlecase</span><br><span class="line">external_link: true # Open external links in new tab</span><br><span class="line">filename_case: 0</span><br><span class="line">render_drafts: false</span><br><span class="line">post_asset_folder: false</span><br><span class="line">relative_link: false</span><br><span class="line">future: true</span><br><span class="line">highlight:</span><br><span class="line">  enable: true</span><br><span class="line">  line_number: true</span><br><span class="line">  tab_replace:</span><br><span class="line"></span><br><span class="line"># Category &amp; Tag</span><br><span class="line">default_category: uncategorized</span><br><span class="line">category_map:</span><br><span class="line">tag_map:</span><br><span class="line"></span><br><span class="line"># Date / Time format</span><br><span class="line">## Hexo uses Moment.js to parse and display date</span><br><span class="line">## You can customize the date format as defined in</span><br><span class="line">## http://momentjs.com/docs/#/displaying/format/</span><br><span class="line">date_format: YYYY-MM-DD</span><br><span class="line">time_format: HH:mm:ss</span><br><span class="line"></span><br><span class="line"># Pagination</span><br><span class="line">## Set per_page to 0 to disable pagination</span><br><span class="line">per_page: 10</span><br><span class="line">pagination_dir: page</span><br><span class="line"></span><br><span class="line"># Extensions</span><br><span class="line">## Plugins: http://hexo.io/plugins/</span><br><span class="line">## Themes: http://hexo.io/themes/</span><br><span class="line">theme: jacman</span><br><span class="line"></span><br><span class="line"># Deployment</span><br><span class="line">## Docs: http://hexo.io/docs/deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repository: git@github.com:njuptjsy/njuptjsy.github.com.git</span><br><span class="line">  branch: master</span><br><span class="line">  message: this is frist try</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="修改局部页面">修改局部页面</h1><p>页面展现的全部逻辑都在每个主题中控制，源代码在hexo\themes\jacman\中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── languages  <span class="comment">#多语言</span></span><br><span class="line">|   ├── default.yml<span class="comment">#默认语言</span></span><br><span class="line">|   └── zh-CN.yml  <span class="comment">#中文语言</span></span><br><span class="line">├── layout <span class="comment">#布局，根目录下的*.ejs文件是对主页，分页，存档等的控制</span></span><br><span class="line">|   ├── _partial   <span class="comment">#局部的布局，此目录下的*.ejs是对头尾等局部的控制</span></span><br><span class="line">|   └── _widget<span class="comment">#小挂件的布局，页面下方小挂件的控制</span></span><br><span class="line">├── <span class="built_in">source</span> <span class="comment">#源码</span></span><br><span class="line">|   ├── css<span class="comment">#css源码 </span></span><br><span class="line">|   |   ├── _base  <span class="comment">#*.styl基础css</span></span><br><span class="line">|   |   ├── _partial   <span class="comment">#*.styl局部css</span></span><br><span class="line">|   |   ├── fonts  <span class="comment">#字体</span></span><br><span class="line">|   |   ├── images <span class="comment">#图片</span></span><br><span class="line">|   |   └── style.styl <span class="comment">#*.styl引入需要的css源码</span></span><br><span class="line">|   ├── fancybox   <span class="comment">#fancybox效果源码</span></span><br><span class="line">|   └── js <span class="comment">#javascript源代码</span></span><br><span class="line">├── _config.yml<span class="comment">#主题配置文件</span></span><br><span class="line">└── README.md  <span class="comment">#用GitHub的都知道</span></span><br></pre></td></tr></table></figure></p>
 <p>到这里一个简单的hexo搭建的博客就部署好了，使用markdown写博的语法可以阅读<a href="http://ibruce.info/2013/11/26/markdown/" target="_blank" rel="external">这篇文章</a></p>
 
         
@@ -146,28 +148,24 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/hello-world/" title="Hello World" itemprop="url">Hello World</a>
+      <a href="/2015/05/09/hello-world/" title="小站的开篇" itemprop="url">小站的开篇</a>
   </h1>
   <p class="article-author">By
        
-		<a href="/about" title="John Doe" target="_blank" itemprop="author">John Doe</a>
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T04:15:38.666Z" itemprop="datePublished"> 發表於 2015-05-09</time>
+    <time datetime="2015-05-09T07:14:53.244Z" itemprop="datePublished"> 发表于 2015-05-09</time>
     
   </p>
 </header>
     <div class="article-content">
         
-        <p>Welcome to <a href="http://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="http://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="http://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick_Start">Quick Start</h2><h3 id="Create_a_new_post">Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run_server">Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate_static_files">Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy_to_remote_sites">Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
+        <p>用下面四句话作为开篇</p>
+<p>所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。</p>
+<p>你是活了一万多天？还是活了一天 却重复了一万多次？</p>
+<p>说出来被人嘲笑的梦想，才有实现的价值。</p>
+<p>既然庸庸碌碌也难逃一死，何不奋起一搏？</p>
 
         
         
@@ -200,10 +198,10 @@
 
 
 </div>
-      <div class="openaside"><a class="navbutton" href="#" title="顯示側邊欄"></a></div>
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
 
 <div id="asidepart">
-<div class="closeaside"><a class="closebutton" href="#" title="隱藏側邊欄"></a></div>
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
 
   
@@ -211,7 +209,7 @@
   
 
   <div class="linkslist">
-  <p class="asidetitle">友情鏈接</p>
+  <p class="asidetitle">友情链接</p>
     <ul>
         
           <li>
@@ -233,7 +231,7 @@
 
 
   <div class="rsspart">
-	<a href="/atom.xml" target="_blank" title="rss">RSS 訂閱</a>
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
 </div>
 
 </aside>
@@ -248,8 +246,8 @@
 	
 	
 	<section class="info">
-		<p> Hello ,I&#39;m Larry Page in Google. <br/>
-			This is my blog,believe it or not.</p>
+		<p> Hello ,I&#39;m Siyu Jin in Github. <br/>
+			This is my blog.</p>
 	</section>
 	 
 	<div class="social-font" class="clearfix">
@@ -270,7 +268,7 @@
 		<p class="copyright">
 		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
 		
-		<a href="/about" target="_blank" title="John Doe">John Doe</a>
+		<a href="/about" target="_blank" title="Siyu Jin">Siyu Jin</a>
 		
 		
 		</p>
@@ -368,7 +366,7 @@ $(document).ready(function(){
 <!-- Totop Begin -->
 
 	<div id="totop">
-	<a title="返回頂部"><img src="/img/scrollup.png"/></a>
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
 	</div>
 	<script src="/js/totop.js"></script>
 
