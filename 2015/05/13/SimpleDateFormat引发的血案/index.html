@@ -4,34 +4,25 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>小站的开篇 | More Than Words</title>
+    <title>SimpleDateFormat引发的血案 | More Than Words</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Siyu Jin">
     
 
     
-    <meta name="description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+    <meta name="description" content="在研究从阿里云下载文件的时候(由于阿里SDK不支持android,所以用的是第三方SDK)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。
+进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable">
 <meta property="og:type" content="article">
-<meta property="og:title" content="小站的开篇">
-<meta property="og:url" content="http://njuptjsy.github.io/2015/05/09/hello-world/index.html">
+<meta property="og:title" content="SimpleDateFormat引发的血案">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/05/13/SimpleDateFormat引发的血案/index.html">
 <meta property="og:site_name" content="More Than Words">
-<meta property="og:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta property="og:description" content="在研究从阿里云下载文件的时候(由于阿里SDK不支持android,所以用的是第三方SDK)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。
+进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="小站的开篇">
-<meta name="twitter:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta name="twitter:title" content="SimpleDateFormat引发的血案">
+<meta name="twitter:description" content="在研究从阿里云下载文件的时候(由于阿里SDK不支持android,所以用的是第三方SDK)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。
+进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable">
 
     
     <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
@@ -91,14 +82,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/hello-world/" title="小站的开篇" itemprop="url">小站的开篇</a>
+      <a href="/2015/05/13/SimpleDateFormat引发的血案/" title="SimpleDateFormat引发的血案" itemprop="url">SimpleDateFormat引发的血案</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T07:14:53.244Z" itemprop="datePublished"> 发表于 2015-05-09</time>
+    <time datetime="2015-05-13T15:53:46.000Z" itemprop="datePublished"> 发表于 2015-05-13</time>
     
   </p>
 </header>
@@ -111,16 +102,26 @@
 		
 		</div>
 		
-		<p>用下面四句话作为开篇</p>
-<p>所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。</p>
-<p>你是活了一万多天？还是活了一天 却重复了一万多次？</p>
-<p>说出来被人嘲笑的梦想，才有实现的价值。</p>
-<p>既然庸庸碌碌也难逃一死，何不奋起一搏？</p>
+		<p>在研究从阿里云下载文件的时候(由于<a href="">阿里SDK不支持android</a>,所以用的是<a href="git@code.csdn.net:u011293176/aliyun_android_sdk.git">第三方SDK</a>)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。</p>
+<p>进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable date错误，最终的错误根源在jar包中，于是找来源码，将错误定位在下面的函数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">          <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">      SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format);</span><br><span class="line">      <span class="keyword">return</span> sdf.parse(dateString);</span><br></pre></td></tr></table></figure></p>
+<p>在执行字符串转换到date对象时，出现错误。查找到调用getDateFromString方法的函数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getGMTDateFromString</span><span class="params">(String dateStr)</span> <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getDateFromString(<span class="string">"E, dd MMM yyyy HH:mm:ss 'GMT'"</span>, dateStr);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>发现传入的形参format是E, dd MMM yyyy HH:mm:ss ‘GMT’这个格式在中文环境下并不支持，把手机的语言调成英文，错误就消失了。但是要在中文环境下运行不报错的方法就是在新建SimpleDateFormat类时，用第二个参数规定所在的地点在非中国地区。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">            <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format,Locale.ENGLISH );</span><br><span class="line">        <span class="keyword">return</span> sdf.parse(dateString);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面进一步研究SimpleDateFormat这个类的问题，通过查阅<a href="http://tool.oschina.net/apidocs/（提供各种在线文档）提供的在线文档" target="_blank" rel="external">http://tool.oschina.net/apidocs/（提供各种在线文档）提供的在线文档</a><br>可以看到SimpleDateFormat的构造方法有四个，</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Work/">Work</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Debug-Android-Code/">Debug Android Code</a>
+  </div>
 
 </div>
 
@@ -128,7 +129,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://njuptjsy.github.io/2015/05/09/hello-world/" data-title="小站的开篇 | More Than Words" data-tsina="null" class="share clearfix">
+	  <div data-url="http://njuptjsy.github.io/2015/05/13/SimpleDateFormat引发的血案/" data-title="SimpleDateFormat引发的血案 | More Than Words" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -142,13 +143,21 @@
 <nav class="article-nav clearfix">
  
  <div class="prev" >
- <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github">
+ <a href="/2015/05/14/阿里云SDK在Android上的一个bug/" title="阿里云SDK在Android上的一个bug">
   <strong>上一篇：</strong><br/>
   <span>
-  How to deploy blog on github</span>
+  阿里云SDK在Android上的一个bug</span>
 </a>
 </div>
 
+
+<div class="next">
+<a href="/2015/05/13/Android全局获取Context的方法/"  title="Android全局获取Context的方法">
+ <strong>下一篇：</strong><br/> 
+ <span>Android全局获取Context的方法
+</span>
+</a>
+</div>
 
 </nav>
 

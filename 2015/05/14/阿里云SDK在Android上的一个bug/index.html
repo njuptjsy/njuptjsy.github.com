@@ -4,34 +4,22 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>小站的开篇 | More Than Words</title>
+    <title>阿里云SDK在Android上的一个bug | More Than Words</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Siyu Jin">
     
 
     
-    <meta name="description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+    <meta name="description" content="开发需要要求和阿里云交互，于是就去阿里云官网找SDK，不得不说相比于AWS阿里云接口和文档上差距很大,可以看见阿里云SDK就支持JAVA、Python、.NET和PHP。好在他提供了一个Java SDK，原本觉得都是 Java 的环境，Android 上应该也没啥问题，结果发现有依赖上的冲突，运行时给了个 NoSuchMethodError经过分析发现Android 框架中集成了 Apache 的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="小站的开篇">
-<meta property="og:url" content="http://njuptjsy.github.io/2015/05/09/hello-world/index.html">
+<meta property="og:title" content="阿里云SDK在Android上的一个bug">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/05/14/阿里云SDK在Android上的一个bug/index.html">
 <meta property="og:site_name" content="More Than Words">
-<meta property="og:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta property="og:description" content="开发需要要求和阿里云交互，于是就去阿里云官网找SDK，不得不说相比于AWS阿里云接口和文档上差距很大,可以看见阿里云SDK就支持JAVA、Python、.NET和PHP。好在他提供了一个Java SDK，原本觉得都是 Java 的环境，Android 上应该也没啥问题，结果发现有依赖上的冲突，运行时给了个 NoSuchMethodError经过分析发现Android 框架中集成了 Apache 的">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="小站的开篇">
-<meta name="twitter:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta name="twitter:title" content="阿里云SDK在Android上的一个bug">
+<meta name="twitter:description" content="开发需要要求和阿里云交互，于是就去阿里云官网找SDK，不得不说相比于AWS阿里云接口和文档上差距很大,可以看见阿里云SDK就支持JAVA、Python、.NET和PHP。好在他提供了一个Java SDK，原本觉得都是 Java 的环境，Android 上应该也没啥问题，结果发现有依赖上的冲突，运行时给了个 NoSuchMethodError经过分析发现Android 框架中集成了 Apache 的">
 
     
     <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
@@ -91,14 +79,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/hello-world/" title="小站的开篇" itemprop="url">小站的开篇</a>
+      <a href="/2015/05/14/阿里云SDK在Android上的一个bug/" title="阿里云SDK在Android上的一个bug" itemprop="url">阿里云SDK在Android上的一个bug</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T07:14:53.244Z" itemprop="datePublished"> 发表于 2015-05-09</time>
+    <time datetime="2015-05-13T16:02:47.000Z" itemprop="datePublished"> 发表于 2015-05-14</time>
     
   </p>
 </header>
@@ -111,16 +99,23 @@
 		
 		</div>
 		
-		<p>用下面四句话作为开篇</p>
-<p>所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。</p>
-<p>你是活了一万多天？还是活了一天 却重复了一万多次？</p>
-<p>说出来被人嘲笑的梦想，才有实现的价值。</p>
-<p>既然庸庸碌碌也难逃一死，何不奋起一搏？</p>
+		<p>开发需要要求和阿里云交互，于是就去阿里云官网找SDK，不得不说相比于AWS阿里云接口和文档上差距很大,可以看见<a href="http://develop.aliyun.com/sdk/java?spm=5176.383338.201.73.vuG8v2" target="_blank" rel="external">阿里云SDK</a>就支持JAVA、Python、.NET和PHP。好在他提供了一个Java SDK，原本觉得都是 Java 的环境，Android 上应该也没啥问题，结果发现有依赖上的冲突，运行时给了个 NoSuchMethodError<br>经过分析发现Android 框架中集成了 Apache 的 httpClient 包，阿里云 OSS Java SDK 也需要用 httpClient。异常是 OSSClient 构造所调的 ThreadSafeClientConnManager 构造方法。虽然依赖都是单独 jar 发布的，尝试过改变构建顺序、去除附加 jar 包等方案，结果依旧。</p>
+<p>最后结局方案是用第三方的一个SDK,用起来也很别扭，希望阿里早日解决对android的支持吧。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Work/">Work</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Debug-Android-Code/">Debug Android Code</a>
+  </div>
 
 </div>
 
@@ -128,7 +123,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://njuptjsy.github.io/2015/05/09/hello-world/" data-title="小站的开篇 | More Than Words" data-tsina="null" class="share clearfix">
+	  <div data-url="http://njuptjsy.github.io/2015/05/14/阿里云SDK在Android上的一个bug/" data-title="阿里云SDK在Android上的一个bug | More Than Words" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -141,14 +136,14 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github">
-  <strong>上一篇：</strong><br/>
-  <span>
-  How to deploy blog on github</span>
+
+<div class="next">
+<a href="/2015/05/13/SimpleDateFormat引发的血案/"  title="SimpleDateFormat引发的血案">
+ <strong>下一篇：</strong><br/> 
+ <span>SimpleDateFormat引发的血案
+</span>
 </a>
 </div>
-
 
 </nav>
 
