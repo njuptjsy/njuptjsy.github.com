@@ -19,6 +19,7 @@
 <meta property="og:site_name" content="More Than Words">
 <meta property="og:description" content="在研究从阿里云下载文件的时候(由于阿里SDK不支持android,所以用的是第三方SDK)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。
 进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable">
+<meta property="og:image" content="https://github.com/njuptjsy/njuptjsy.github.com/blob/master/img/SimpleDateFormat%E5%BC%95%E5%8F%91%E7%9A%84%E8%A1%80%E6%A1%88pic1.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SimpleDateFormat引发的血案">
 <meta name="twitter:description" content="在研究从阿里云下载文件的时候(由于阿里SDK不支持android,所以用的是第三方SDK)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。
@@ -102,11 +103,12 @@
 		
 		</div>
 		
-		<p>在研究从阿里云下载文件的时候(由于<a href="">阿里SDK不支持android</a>,所以用的是<a href="git@code.csdn.net:u011293176/aliyun_android_sdk.git">第三方SDK</a>)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。</p>
+		<p>在研究从阿里云下载文件的时候(由于<a href="http://njuptjsy.github.io/2015/05/14/%E9%98%BF%E9%87%8C%E4%BA%91SDK%E5%9C%A8Android%E4%B8%8A%E7%9A%84%E4%B8%80%E4%B8%AAbug/" target="_blank" rel="external">阿里SDK不支持android</a>,所以用的是<a href="git@code.csdn.net:u011293176/aliyun_android_sdk.git">第三方SDK</a>)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。</p>
 <p>进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable date错误，最终的错误根源在jar包中，于是找来源码，将错误定位在下面的函数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">          <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">      SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format);</span><br><span class="line">      <span class="keyword">return</span> sdf.parse(dateString);</span><br></pre></td></tr></table></figure></p>
 <p>在执行字符串转换到date对象时，出现错误。查找到调用getDateFromString方法的函数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getGMTDateFromString</span><span class="params">(String dateStr)</span> <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getDateFromString(<span class="string">"E, dd MMM yyyy HH:mm:ss 'GMT'"</span>, dateStr);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
 <p>发现传入的形参format是E, dd MMM yyyy HH:mm:ss ‘GMT’这个格式在中文环境下并不支持，把手机的语言调成英文，错误就消失了。但是要在中文环境下运行不报错的方法就是在新建SimpleDateFormat类时，用第二个参数规定所在的地点在非中国地区。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">            <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format,Locale.ENGLISH );</span><br><span class="line">        <span class="keyword">return</span> sdf.parse(dateString);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
-<p>下面进一步研究SimpleDateFormat这个类的问题，通过查阅<a href="http://tool.oschina.net/apidocs/（提供各种在线文档）提供的在线文档" target="_blank" rel="external">http://tool.oschina.net/apidocs/（提供各种在线文档）提供的在线文档</a><br>可以看到SimpleDateFormat的构造方法有四个，</p>
+<p>下面进一步研究SimpleDateFormat这个类的问题，通过查阅<a href="http://tool.oschina.net/apidocs/" target="_blank" rel="external">OSChina的android API</a>（谷歌被墙你懂的）提供的在线文档可以看到SimpleDateFormat的构造方法有四个:<br> <img src="https://github.com/njuptjsy/njuptjsy.github.com/blob/master/img/SimpleDateFormat%E5%BC%95%E5%8F%91%E7%9A%84%E8%A1%80%E6%A1%88pic1.png" alt="image"><br>其中<br><code>SimpleDateFormat(String pattern, Locale locale)</code><br>Constructs a SimpleDateFormat using the given pattern and the default date format symbols for the given locale.这个构造函数传入时间格式和第二参数规定的地区的时间格式标志<br>|SimpleDateFormat        |<br>| ——————- ————:|<br>| public SimpleDateFormat(String pattern,Locale locale)<br>Constructs a SimpleDateFormat using the given pattern and the default date format symbols for the given locale. Note: This constructor may not support all locales. For full coverage, use the factory methods in the DateFormat class.<br>Parameters:pattern - the pattern describing the date and time formatlocale - the locale whose date format symbols should be usedThrows:NullPointerException - if the given pattern or locale is nullIllegalArgumentException - if the given pattern is invalid |<br>而public SimpleDateFormat(String pattern)使用传入的格式和系统所在地区默认的日期格式标志<br>|SimpleDateFormat        |<br>| ——————- ————:|<br>| public SimpleDateFormat(String pattern)<br>Constructs a SimpleDateFormat using the given pattern and the default date format symbols for the default locale. Note: This constructor may not support all locales. For full coverage, use the factory methods in the DateFormat class.<br>Parameters:pattern - the pattern describing the date and time formatThrows:NullPointerException - if the given pattern is nullIllegalArgumentException - if the given pattern is invalid |<br>由于很多日期格式在中文语境下是不能转换成date对象，所以推荐使用指定local的构造函数</p>
+<p>题外话SimpleDateFormat不是线程安全的,可以看这篇精彩的<a href="http://www.cnblogs.com/peida/archive/2013/05/31/3070790.html" target="_blank" rel="external">文章</a><br>这也同时提醒我们在开发和设计系统的时候注意下一下三点:<br>　　1.自己写公用类的时候，要对多线程调用情况下的后果在注释里进行明确说明<br>　　2.多线程环境下，对每一个共享的可变变量都要注意其线程安全性<br>　　3.我们的类和方法在做设计的时候，要尽量设计成无状态的</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -120,7 +122,7 @@
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/Debug-Android-Code/">Debug Android Code</a>
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Debug/">Debug</a>
   </div>
 
 </div>
@@ -206,15 +208,15 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Debug-Android-Code/" title="Debug Android Code">Debug Android Code<sup>2</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>2</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/Skills/" title="Skills">Skills<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>1</sup></a></li>
 			
 		
 		</ul>
