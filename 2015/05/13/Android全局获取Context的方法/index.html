@@ -4,34 +4,22 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>小站的开篇 | More Than Words</title>
+    <title>Android全局获取Context的方法 | More Than Words</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Siyu Jin">
     
 
     
-    <meta name="description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+    <meta name="description" content="在Android中调用系统服务很多时候都需要用到Context对象，如果是在MainActivity等Activity的子类中自然没有问题，调用系统服务默认会添加context.或者可以显式的使用MainActivity.this，但是在非Activity子类的情况下就要求在构造该类对象的时候，将context传递进去，不免出现反复传递context的现象，笔记程序员懒是一种美德，所以找到了如下的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="小站的开篇">
-<meta property="og:url" content="http://njuptjsy.github.io/2015/05/09/hello-world/index.html">
+<meta property="og:title" content="Android全局获取Context的方法">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/05/13/Android全局获取Context的方法/index.html">
 <meta property="og:site_name" content="More Than Words">
-<meta property="og:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta property="og:description" content="在Android中调用系统服务很多时候都需要用到Context对象，如果是在MainActivity等Activity的子类中自然没有问题，调用系统服务默认会添加context.或者可以显式的使用MainActivity.this，但是在非Activity子类的情况下就要求在构造该类对象的时候，将context传递进去，不免出现反复传递context的现象，笔记程序员懒是一种美德，所以找到了如下的">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="小站的开篇">
-<meta name="twitter:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta name="twitter:title" content="Android全局获取Context的方法">
+<meta name="twitter:description" content="在Android中调用系统服务很多时候都需要用到Context对象，如果是在MainActivity等Activity的子类中自然没有问题，调用系统服务默认会添加context.或者可以显式的使用MainActivity.this，但是在非Activity子类的情况下就要求在构造该类对象的时候，将context传递进去，不免出现反复传递context的现象，笔记程序员懒是一种美德，所以找到了如下的">
 
     
     <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
@@ -91,14 +79,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/hello-world/" title="小站的开篇" itemprop="url">小站的开篇</a>
+      <a href="/2015/05/13/Android全局获取Context的方法/" title="Android全局获取Context的方法" itemprop="url">Android全局获取Context的方法</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T07:14:53.244Z" itemprop="datePublished"> 发表于 2015-05-09</time>
+    <time datetime="2015-05-13T15:29:37.000Z" itemprop="datePublished"> 发表于 2015-05-13</time>
     
   </p>
 </header>
@@ -111,16 +99,24 @@
 		
 		</div>
 		
-		<p>用下面四句话作为开篇</p>
-<p>所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。</p>
-<p>你是活了一万多天？还是活了一天 却重复了一万多次？</p>
-<p>说出来被人嘲笑的梦想，才有实现的价值。</p>
-<p>既然庸庸碌碌也难逃一死，何不奋起一搏？</p>
+		<p>在Android中调用系统服务很多时候都需要用到Context对象，如果是在MainActivity等Activity的子类中自然没有问题，调用系统服务默认会添加context.或者可以显式的使用MainActivity.this，但是在非Activity子类的情况下就要求在构造该类对象的时候，将context传递进去，不免出现反复传递context的现象，笔记程序员懒是一种美德，所以找到了如下的方法可以全局获取context。非常简单首先在AndroidManifest.xml中声明自定义的Application的子类<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">application</span></span><br><span class="line">    <span class="attribute">android:name</span>=<span class="value">"com.njuptjsy.cloudclient.MyApplication"</span></span><br><span class="line">	<span class="attribute">......</span>	</span><br><span class="line">/<span class="attribute">application</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>接着在项目中新建一个MyApplication类继承Application<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> Context context;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		context = getApplicationContext();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Context <span class="title">getContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> context;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样就可以通过MyApplication的静态方法getContext()全局获取context对象了</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Skills/">Skills</a>
+  </div>
 
 </div>
 
@@ -128,7 +124,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://njuptjsy.github.io/2015/05/09/hello-world/" data-title="小站的开篇 | More Than Words" data-tsina="null" class="share clearfix">
+	  <div data-url="http://njuptjsy.github.io/2015/05/13/Android全局获取Context的方法/" data-title="Android全局获取Context的方法 | More Than Words" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -141,14 +137,14 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github">
-  <strong>上一篇：</strong><br/>
-  <span>
-  How to deploy blog on github</span>
+
+<div class="next">
+<a href="/2015/05/11/获取Android手机内测CPU等信息/"  title="获取Android手机内测CPU等信息">
+ <strong>下一篇：</strong><br/> 
+ <span>获取Android手机内测CPU等信息
+</span>
 </a>
 </div>
-
 
 </nav>
 
