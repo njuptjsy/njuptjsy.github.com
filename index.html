@@ -81,6 +81,75 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/05/24/Android开发技巧-UI/" title="Android开发技巧--UI" itemprop="url">Android开发技巧--UI</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-24T05:20:30.000Z" itemprop="datePublished"> 发表于 2015-05-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="自定义的ListView">自定义的ListView</h1><p>移动设备上的UI设计，用的最多的就是listView，从QQ、微信到一些新闻客户端，都是上下标题栏加上中间列表的结构，这样可以充分的利用移动设备并不富裕的空间，高效的显示更多的信息。Android中通过自定义的Adapter可以根据需要对ListView进行定制。<br>假设要在一个ListView中的每个条目展示不同的Fruit的名称和图片，首先新建一个Fruit类表示Fruit对象,其中name成员变量表示水果名，imageId表示对应的Fruit的图片资源id<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Fruit</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> imageId;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Fruit</span><span class="params">(String name, <span class="keyword">int</span> imageId)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.name = name;</span><br><span class="line">		<span class="keyword">this</span>.imageId = imageId;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> name;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getImageId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> imageId;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着需要定义一个对应于上面Fruit类的布局文件，作为ListView中每个条目的布局文件。下面就可以定义一个最基本的没有优化的适配器，这里是通过继承指定泛型为Fruit的ArrayAdapter<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FruitAdapter</span> <span class="keyword">extends</span> <span class="title">ArrayAdapter</span>&lt;<span class="title">Fruit</span>&gt; </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> resourceId;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">FruitAdapter</span><span class="params">(Context context, <span class="keyword">int</span> itemViewResourceId,List&lt;Fruit&gt; objects)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>(context, itemViewResourceId, objects);</span><br><span class="line">		resourceId = itemViewResourceId;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">		Fruit fruit = getItem(position); <span class="comment">// 获取当前项的Fruit实例</span></span><br><span class="line">		View view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">		ImageView fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">		TextView fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">		fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">		fruitName.setText(fruit.getName());</span><br><span class="line">		<span class="keyword">return</span> view;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，在构造函数中依次传入context对象，每个条目的布局文件的资源id，需要显示的所有Fruit对象组成的List<fruit>列表。其实，实现自定义的适配器最主要的逻辑就在覆盖的getView方法中。这个方法在每个子项被滑动到屏幕内，即该子项将显示的时候被调用。可以看到这该方法中，我们首先调用gitItem方法根据位置position参数得到当前需要操作的fruit对象；接着，利用LayoutInflater来加载前面定义的好的子项布局；下面，通过通过findViewById方法将布局文件中各个组件view获取；最后获取fruit对象的数据，显示在布局文件相应的组件中，并返回这个组件即可。<br>但是，可以观察到大多数自定义的适配器中的getView方法都不是如此简单粗暴。上面的写法每次调用getview方法是都需要加载一次布局文件，这是多余了，完全可以利用convertView参数进行优化<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">	Fruit fruit = getItem(position);</span><br><span class="line">	View view;</span><br><span class="line">	<span class="keyword">if</span> (convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">		view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		view = convertView;</span><br><span class="line">	&#125;</span><br><span class="line">	ImageView fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">	TextView fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">	fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">	fruitName.setText(fruit.getName());</span><br><span class="line">	<span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></fruit></p>
+<p>convertView参数用于将之前加载好的布局进行缓存，所以我们可以在加载布局文件之前进行判断，如果convertView不为空就不要再去利用LayoutInflater去加载布局。这里需要说的就是convertView，Android SDK中这样讲参数 convertview ：<br>the old view to reuse, if possible. Note: You should check that this view is non-null and of an appropriate type before using.<br> If it is not possible to convert this view to display the correct data, this method can create a new view.<br>为了节省内存，不至于让listview中的每个item都驻留在手机的内存中，Android提供了一套Recycler机制，当一个ListView初次新建时，getview中的convertView是null，这时用户开始滚动listview，当其中一个item被滚出屏幕后，android就将其保存在Recycler中而不是内存中。再次调用getview方法时，传入的convertView就是被滚出屏幕的item的布局了，只需要重新设定布局组件的数据即可。</p>
+<p>下面，可以进一步优化，我们发现每次调用getView方法时，都会使用findViewById方法得到布局文件中每一个组件才能为其赋值。这也是十分影响效率的。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">	Fruit fruit = getItem(position);</span><br><span class="line">	View view;</span><br><span class="line">	ViewHolder viewHolder;</span><br><span class="line">	<span class="keyword">if</span> (convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">		view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">		viewHolder = <span class="keyword">new</span> ViewHolder();</span><br><span class="line">		viewHolder.fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">		viewHolder.fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">		view.setTag(viewHolder); <span class="comment">// 将ViewHolder存储在View中</span></span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		view = convertView;</span><br><span class="line">		viewHolder = (ViewHolder) view.getTag(); <span class="comment">// 重新获取ViewHolder</span></span><br><span class="line">	&#125;</span><br><span class="line">	viewHolder.fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">	viewHolder.fruitName.setText(fruit.getName());</span><br><span class="line">	<span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> </span>&#123;</span><br><span class="line">	ImageView fruitImage;</span><br><span class="line">	TextView fruitName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过定义内部类ViewHolder对布局文件的控件进行缓存，当convertView为空是我们创建一个viewHolder对象，将布局文件的组件都保存在其中。接着调用view的setTag方法将viewHolder对象保存在其中。在convertView不为空时，即可用从Recycler中取出旧的布局文件时，我们在通过view的getTag方法将布局文件的组件取出，以便接下来对其进行赋值。<br>这样，如果convertview是第一次展示我们就创建新的Holder对象与之绑定，并在最后通过return convertview返回，去显示；如果convertview 是回收来的那么我们就不必创建新的holder对象，只需要把原来的绑定的holder取出加上新的数据就行了。</p>
+<h1 id="制作Nine-Patch图片">制作Nine-Patch图片</h1><p>有时候，我们需要制定一张图片那些部分是可以拉伸的，而不希望其均匀的被拉伸。这时候我们就可以利用android sdk中提供的一个工具,首先找到sdk根目录，打开其中的tools文件夹，运行draw9patch.bat,将要编辑的图片加载到其中。接着，在图片的四个边框绘制一个个的小黑点，在<em>上边框和左边框绘制的部分就表示当图片需要拉伸时就拉伸黑点标记的区域</em>，在<em>下边框和右边框绘制的部分则表示内容会被放置的区域</em>。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/9-patch.png" alt="image"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/24/Android开发技巧-UI/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/05/22/Android开发技巧-其它技巧/" title="Android开发技巧--其它技巧" itemprop="url">Android开发技巧--其它技巧</a>
   </h1>
   <p class="article-author">By
@@ -351,71 +420,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/13/Android全局获取Context的方法/" title="Android全局获取Context的方法" itemprop="url">Android全局获取Context的方法</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-13T15:29:37.000Z" itemprop="datePublished"> 发表于 2015-05-13</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>在Android中调用系统服务很多时候都需要用到Context对象，如果是在MainActivity等Activity的子类中自然没有问题，调用系统服务默认会添加context.或者可以显式的使用MainActivity.this，但是在非Activity子类的情况下就要求在构造该类对象的时候，将context传递进去，不免出现反复传递context的现象，毕竟程序员懒是一种美德，所以找到了如下的方法可以全局获取context。非常简单首先在AndroidManifest.xml中声明自定义的Application的子类<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">application</span></span><br><span class="line">    <span class="attribute">android:name</span>=<span class="value">"com.njuptjsy.cloudclient.MyApplication"</span></span><br><span class="line">	<span class="attribute">......</span>	</span><br><span class="line">/<span class="attribute">application</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<p>接着在项目中新建一个MyApplication类继承Application<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> Context context;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		context = getApplicationContext();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Context <span class="title">getContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> context;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这样就可以通过MyApplication的静态方法getContext()全局获取context对象了</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/13/Android全局获取Context的方法/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -434,7 +438,7 @@
 		<ul>
 		
 		  
-			<li><a href="/categories/Android/" title="Android">Android<sup>4</sup></a></li>
+			<li><a href="/categories/Android/" title="Android">Android<sup>5</sup></a></li>
 		  
 		
 		  
@@ -451,11 +455,11 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>5</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>6</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Skills/" title="Skills">Skills<sup>3</sup></a></li>
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>4</sup></a></li>
 			
 		
 			
