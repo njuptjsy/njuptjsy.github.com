@@ -1,0 +1,476 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android开发技巧--碎片 | More Than Words</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Siyu Jin">
+    
+
+    
+    <meta name="description" content="概念总结为了应付Android设备各种尺寸的屏幕，为这些设备提供一个统一的解决方案，Android推出了Fragment组件。一种可以嵌入活动当中的UI片段。Android提供了位于两个不同包下的Fragment对象，android.app.Fragment支持Android4.0以上的版本，另一个包主要是兼容低版本的Android系统。
+简单实现要实现对Fragment的使用，首要需要和普通的U">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android开发技巧--碎片">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/05/26/Android开发技巧-碎片/index.html">
+<meta property="og:site_name" content="More Than Words">
+<meta property="og:description" content="概念总结为了应付Android设备各种尺寸的屏幕，为这些设备提供一个统一的解决方案，Android推出了Fragment组件。一种可以嵌入活动当中的UI片段。Android提供了位于两个不同包下的Fragment对象，android.app.Fragment支持Android4.0以上的版本，另一个包主要是兼容低版本的Android系统。
+简单实现要实现对Fragment的使用，首要需要和普通的U">
+<meta property="og:image" content="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E7%A2%8E%E7%89%87%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android开发技巧--碎片">
+<meta name="twitter:description" content="概念总结为了应付Android设备各种尺寸的屏幕，为这些设备提供一个统一的解决方案，Android推出了Fragment组件。一种可以嵌入活动当中的UI片段。Android提供了位于两个不同包下的Fragment对象，android.app.Fragment支持Android4.0以上的版本，另一个包主要是兼容低版本的Android系统。
+简单实现要实现对Fragment的使用，首要需要和普通的U">
+
+    
+    <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="More Than Words" title="More Than Words"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="More Than Words">More Than Words</a></h1>
+				<h2 class="blog-motto">Perfection is not attainable, but if we chase it we can catch excellence.</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:njuptjsy.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/26/Android开发技巧-碎片/" title="Android开发技巧--碎片" itemprop="url">Android开发技巧--碎片</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-26T05:15:00.000Z" itemprop="datePublished"> 发表于 2015-05-26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概念总结"><span class="toc-number">1.</span> <span class="toc-text">概念总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#简单实现"><span class="toc-number">1.1.</span> <span class="toc-text">简单实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#动态的添加碎片"><span class="toc-number">1.2.</span> <span class="toc-text">动态的添加碎片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片中的返回栈"><span class="toc-number">1.3.</span> <span class="toc-text">碎片中的返回栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片通信"><span class="toc-number">1.4.</span> <span class="toc-text">碎片通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片生命周期"><span class="toc-number">1.5.</span> <span class="toc-text">碎片生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Skills"><span class="toc-number">1.6.</span> <span class="toc-text">Skills</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#使用限定符"><span class="toc-number">1.6.1.</span> <span class="toc-text">使用限定符</span></a></li></ol></li></ol></li></ol>
+		
+		</div>
+		
+		<h1 id="概念总结">概念总结</h1><p>为了应付Android设备各种尺寸的屏幕，为这些设备提供一个统一的解决方案，Android推出了Fragment组件。一种可以嵌入活动当中的UI片段。Android提供了位于两个不同包下的Fragment对象，android.app.Fragment支持Android4.0以上的版本，另一个包主要是兼容低版本的Android系统。</p>
+<h2 id="简单实现">简单实现</h2><p>要实现对Fragment的使用，首要需要和普通的UI布局一样声明该Fragment对应的布局，接着新建一个类继承自android.app.Fragment的自定义类，复写其中的onCreateView方法在其中通过LayoutInflater将刚才定义的left_fragment动态的加载进来。下面是一个小例子：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">LinearLayout</span> <span class="attribute">xmlns:android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span></span><br><span class="line">	<span class="attribute">android:layout_width</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:layout_height</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:background</span>=<span class="value">"#00ff00"</span></span><br><span class="line">	<span class="attribute">android:orientation</span>=<span class="value">"vertical"</span> &gt;</span></span><br><span class="line">	</span><br><span class="line">	<span class="tag">&lt;<span class="title">TextView</span></span><br><span class="line">		<span class="attribute">android:layout_width</span>=<span class="value">"wrap_content"</span></span><br><span class="line">		<span class="attribute">android:layout_height</span>=<span class="value">"wrap_content"</span></span><br><span class="line">		<span class="attribute">android:layout_gravity</span>=<span class="value">"center_horizontal"</span></span><br><span class="line">		<span class="attribute">android:textSize</span>=<span class="value">"20sp"</span></span><br><span class="line">		<span class="attribute">android:text</span>=<span class="value">"This is right fragment"</span></span><br><span class="line">	/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>继承Fragment并复写其中onCreateView()<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LeftFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">		View view = inflater.inflate(R.layout.left_fragment, container, <span class="keyword">false</span>);</span><br><span class="line">		<span class="keyword">return</span> view;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在布局文件中，可以通过了fragment标签添加碎片，其中通过android:name来制定相应的属性来显式指明要添加的碎片类名<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">fragment</span></span><br><span class="line">	<span class="attribute">android:id</span>=<span class="value">"@+id/left_fragment"</span></span><br><span class="line">	<span class="attribute">android:name</span>=<span class="value">"com.example.fragmenttest.LeftFragment"</span></span><br><span class="line">	<span class="attribute">android:layout_width</span>=<span class="value">"0dp"</span></span><br><span class="line">	<span class="attribute">android:layout_height</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:layout_weight</span>=<span class="value">"1"</span> /&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="动态的添加碎片">动态的添加碎片</h2><p>和上面的例子，首先需要声明碎片的布局文件，定义继承了Fragment的类并复写其中的onCreateView方法，在其中加载刚刚声明的布局文件。到这边都和全面一样，下面是在代码中实现动态添加碎片（碎片类名为AnotherRightFragment）<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">AnotherRightFragment fragment = <span class="keyword">new</span> AnotherRightFragment();</span><br><span class="line">FragmentManager fragmentManager = getFragmentManager();</span><br><span class="line">FragmentTransaction transaction = fragmentManager.beginTransaction();</span><br><span class="line">transaction.replace(R.id.right_layout, fragment);</span><br><span class="line">transaction.commit();</span><br></pre></td></tr></table></figure></p>
+<p>可以将上面的步骤总结如下：<br>1.新建一个待添加的碎片实例<br>2.在活动类中使用getFragmentManager()方法获取fragmentManager对象实例<br>3.利用fragmentManager对象实例调用beginTransaction方法开启一个事务，传入要替换的组件id和待添加的碎片实例，进行替换操作<br>4.提交事务</p>
+<h2 id="碎片中的返回栈">碎片中的返回栈</h2><p>为了像Activity一样利用backstack实现放回键退回到上一个界面，FragmentTransaction 中提供了一个addToBackStack()方法，可以用于将一个事务添加到返回栈中，只需要在transaction.replace方法后加入，transaction.addToBackStack(null);将这个事务加入到返回栈即可。其中传入的参数用于描述返回栈的名字。</p>
+<h2 id="碎片通信">碎片通信</h2><p>在活动实现与碎片通信是通过FragmentManager的findFragmentById方法，从布局文件相应的组件中获取的碎片类对象。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RightFragment rightFragment = (RightFragment) getFragmentManager().findFragmentById(R.id.right_fragment);</span><br></pre></td></tr></table></figure></p>
+<p>在碎片中实现与活动通信使用getActivity方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MainActivity activity = (MainActivity) getActivity();</span><br></pre></td></tr></table></figure></p>
+<p>碎片之间的通信也是通过活动组件，首先在一个活动组件中活动与其相关的活动类，接着利用这个活动去获得另一个碎片即可。</p>
+<h2 id="碎片生命周期">碎片生命周期</h2><p>首先onAttach()方法（当碎片和活动建立关联的时候调用）、onCreateView()方法（为碎片创建视图（加载布局）时调用）和onActivityCreated()方法（确保与碎片相关联的活动一定已经创建完毕的时候调用），回调完毕时碎片是可见的，他所相关的活动和其本身正处于运行状态。<br>碎片进入暂停状态是随着活动进如暂停转态，碎片也会进入暂停状态。<br>碎片进入停止状态的情况有，当活动进入停止状态时、调用了FragmentTransaction的remove和replace方法将碎片移除且在调用的addToBackStack方法。<br>碎片进入销毁状态的情况有，活动被销毁，调用了FragmentTransaction的remove和replace方法将碎片移除但没有在调用的addToBackStack方法，进入本状态依次回调onDestroyView()方法(当与碎片关联的视图被移除的时候调用）onDetach()方法（当碎片和活动解除关联的时候调用）。<br>将碎片的生命周期和活动一起考虑，各个函数回调的顺序见下图<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E7%A2%8E%E7%89%87%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png" alt="image"></p>
+<h2 id="Skills">Skills</h2><h3 id="使用限定符">使用限定符</h3><p>一个最简单的实现就是将两个相同名称不同内容的视图文件，一个单页模式的用于适应手机屏幕的布局文件存放到layout/目录下，将一个双页模式的用于适应屏幕屏幕的布局文件存放到layout-large/目录下，这样android会自动判断什么屏幕是large，在大屏幕上采用layout-large/目录下的布局文件，下表就是android默认的一些限定符的含义。<br>| Tables        | Are           | Cool  |<br>| ——————- |:——————-:| ——-:|<br>| col 3 is      | right-aligned | $1600 |<br>| col 2 is      | centered      |   $12 |<br>| zebra stripes | are neat      |    $1 |</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://njuptjsy.github.io/2015/05/26/Android开发技巧-碎片/" data-title="Android开发技巧--碎片 | More Than Words" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/05/25/Android开发技巧-广播/"  title="Android开发技巧--广播">
+ <strong>下一篇：</strong><br/> 
+ <span>Android开发技巧--广播
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概念总结"><span class="toc-number">1.</span> <span class="toc-text">概念总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#简单实现"><span class="toc-number">1.1.</span> <span class="toc-text">简单实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#动态的添加碎片"><span class="toc-number">1.2.</span> <span class="toc-text">动态的添加碎片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片中的返回栈"><span class="toc-number">1.3.</span> <span class="toc-text">碎片中的返回栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片通信"><span class="toc-number">1.4.</span> <span class="toc-text">碎片通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#碎片生命周期"><span class="toc-number">1.5.</span> <span class="toc-text">碎片生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Skills"><span class="toc-number">1.6.</span> <span class="toc-text">Skills</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#使用限定符"><span class="toc-number">1.6.1.</span> <span class="toc-text">使用限定符</span></a></li></ol></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android/" title="Android">Android<sup>7</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Work/" title="Work">Work<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>2</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://github.com/njuptjsy" target="_blank" title="不积跬步无以至千里">我的github</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.njupt.edu.cn" target="_blank" title="南邮">南邮</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Siyu Jin in Github. <br/>
+			This is my blog,welcome.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Siyu Jin">Siyu Jin</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'guest';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

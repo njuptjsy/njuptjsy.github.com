@@ -114,6 +114,7 @@
 <h1 id="本地广播">本地广播</h1><p>前面所说的广播都是属于系统广播，可以被其他程序截获，为了数据的安全性Android还有一套本地广播机制，即<em>的广播只能够在应用程序的内部进行传递，并且广播接收器也只能接收来自本应用程序发出的广播</em>。<br>本地广播主要使用LocalBroadcastManager对广播进行管理，首先通过getInstance方法获取LocalBroadcastManager对象实例<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">localBroadcastManager = LocalBroadcastManager.getInstance(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure></p>
 <p>在发送广播的时候，使用LocalBroadcastManager.sendBroadcast方法发送本地广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localBroadcastManager.sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
 <p>在注册广播接收器时使用localBroadcastManager.registerReceiver方法注册广播接收器，广播接收器中onReceiver和非本地广播一样<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">intentFilter.addAction(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localReceiver = <span class="keyword">new</span> LocalReceiver();</span><br><span class="line">localBroadcastManager.registerReceiver(localReceiver, intentFilter);<span class="comment">// 注册本地广播监听器</span></span><br></pre></td></tr></table></figure></p>
+<p>另外，本地广播接收器是无法进行静态注册的，因为静态注册就是为了程序在不运行的状态下也能接受广播，在本地广播的应用场景下不需要。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -149,6 +150,14 @@
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/2015/05/26/Android开发技巧-碎片/" title="Android开发技巧--碎片">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Android开发技巧--碎片</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/2015/05/24/Android开发技巧-UI/"  title="Android开发技巧--UI">
@@ -188,7 +197,7 @@
 		<ul>
 		
 		  
-			<li><a href="/categories/Android/" title="Android">Android<sup>6</sup></a></li>
+			<li><a href="/categories/Android/" title="Android">Android<sup>7</sup></a></li>
 		  
 		
 		  
@@ -205,11 +214,11 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>7</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>8</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Skills/" title="Skills">Skills<sup>5</sup></a></li>
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>6</sup></a></li>
 			
 		
 			
