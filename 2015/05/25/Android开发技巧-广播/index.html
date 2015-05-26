@@ -1,0 +1,475 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Android开发技巧--广播 | More Than Words</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Siyu Jin">
+    
+
+    
+    <meta name="description" content="概念总结Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。
+广播接收器广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。广播接收器有两">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android开发技巧--广播">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/05/25/Android开发技巧-广播/index.html">
+<meta property="og:site_name" content="More Than Words">
+<meta property="og:description" content="概念总结Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。
+广播接收器广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。广播接收器有两">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android开发技巧--广播">
+<meta name="twitter:description" content="概念总结Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。
+广播接收器广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。广播接收器有两">
+
+    
+    <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="More Than Words" title="More Than Words"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="More Than Words">More Than Words</a></h1>
+				<h2 class="blog-motto">Perfection is not attainable, but if we chase it we can catch excellence.</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:njuptjsy.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/25/Android开发技巧-广播/" title="Android开发技巧--广播" itemprop="url">Android开发技巧--广播</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-25T15:32:15.000Z" itemprop="datePublished"> 发表于 2015-05-25</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概念总结"><span class="toc-number">1.</span> <span class="toc-text">概念总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#广播接收器"><span class="toc-number">2.</span> <span class="toc-text">广播接收器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#发送广播"><span class="toc-number">3.</span> <span class="toc-text">发送广播</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#标准广播"><span class="toc-number">3.1.</span> <span class="toc-text">标准广播</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有序广播"><span class="toc-number">3.2.</span> <span class="toc-text">有序广播</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#本地广播"><span class="toc-number">4.</span> <span class="toc-text">本地广播</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="概念总结">概念总结</h1><p>Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。</p>
+<h1 id="广播接收器">广播接收器</h1><p>广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。<br>广播接收器有两种注册方式，在代码中动态的注册和在AndroidManifest.xml 中静态的注册。<br>下面是动态注册的基本例子，首先声明一个类继承制BroadcastReceiver，并复写其中的onReceive()方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkChangeReceiver</span> <span class="keyword">extends</span> <span class="title">BroadcastReceiver</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">		Toast.makeText(context, <span class="string">"network changes"</span>,</span><br><span class="line">		Toast.LENGTH_SHORT).show();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着在注册这个接收器的时候，首先通过IntentFilter定义需要接受的动作，新建这个广播接收器对象并将其注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">intentFilter = <span class="keyword">new</span> IntentFilter();</span><br><span class="line">intentFilter.addAction(<span class="string">"android.net.conn.CONNECTIVITY_CHANGE"</span>);</span><br><span class="line">networkChangeReceiver = <span class="keyword">new</span> NetworkChangeReceiver();</span><br><span class="line">registerReceiver(networkChangeReceiver, intentFilter);</span><br></pre></td></tr></table></figure></p>
+<p>最后在不需要这个广播接收器时，需要将其取消注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unregisterReceiver(networkChangeReceiver);</span><br></pre></td></tr></table></figure></p>
+<p>下面是静态的注册广播接收器，非常简单，只需要在AndroidManifest.xml中声明一个接收器，给出其类名，以及需要接收的Intent<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootCompleteReceiver"</span> &gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span> /&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="发送广播">发送广播</h1><h2 id="标准广播">标准广播</h2><p>发送标准广播，只要在Intent对象中填入所需的广播名，在调用sendBroadcast()发送这个广播即可<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
+<h2 id="有序广播">有序广播</h2><p>和标准广播的区别就是发送广播时使用sendOrderedBroadcast()方法发送有序广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendOrderedBroadcast(intent, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure></p>
+<p>其中第一个参数是Intent，第二个参数表示权限，在注册广播接收器的时候，可以通过android:priority 属性给广播接收器设置优先级<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;receiver android:name=".MyBroadcastReceiver"&gt;</span><br><span class="line">	&lt;intent-filter android:priority="100" &gt;</span><br><span class="line">		&lt;action android:name="com.example.broadcasttest.MY_BROADCAST"/&gt;</span><br><span class="line">	&lt;/intent-filter&gt;</span><br><span class="line">&lt;/receiver&gt;</span><br></pre></td></tr></table></figure></p>
+<p>在接收到广播之后，可以在广播接收器中的onReceive()方法中使用abortBroadcast()方法将宝宝截断，后面优先级低于100的广播接收器就收不到该广播了。</p>
+<h1 id="本地广播">本地广播</h1><p>前面所说的广播都是属于系统广播，可以被其他程序截获，为了数据的安全性Android还有一套本地广播机制，即<em>的广播只能够在应用程序的内部进行传递，并且广播接收器也只能接收来自本应用程序发出的广播</em>。<br>本地广播主要使用LocalBroadcastManager对广播进行管理，首先通过getInstance方法获取LocalBroadcastManager对象实例<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">localBroadcastManager = LocalBroadcastManager.getInstance(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure></p>
+<p>在发送广播的时候，使用LocalBroadcastManager.sendBroadcast方法发送本地广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localBroadcastManager.sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
+<p>在注册广播接收器时使用localBroadcastManager.registerReceiver方法注册广播接收器，广播接收器中onReceiver和非本地广播一样<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">intentFilter.addAction(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localReceiver = <span class="keyword">new</span> LocalReceiver();</span><br><span class="line">localBroadcastManager.registerReceiver(localReceiver, intentFilter);<span class="comment">// 注册本地广播监听器</span></span><br></pre></td></tr></table></figure></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://njuptjsy.github.io/2015/05/25/Android开发技巧-广播/" data-title="Android开发技巧--广播 | More Than Words" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/05/24/Android开发技巧-UI/"  title="Android开发技巧--UI">
+ <strong>下一篇：</strong><br/> 
+ <span>Android开发技巧--UI
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概念总结"><span class="toc-number">1.</span> <span class="toc-text">概念总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#广播接收器"><span class="toc-number">2.</span> <span class="toc-text">广播接收器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#发送广播"><span class="toc-number">3.</span> <span class="toc-text">发送广播</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#标准广播"><span class="toc-number">3.1.</span> <span class="toc-text">标准广播</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有序广播"><span class="toc-number">3.2.</span> <span class="toc-text">有序广播</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#本地广播"><span class="toc-number">4.</span> <span class="toc-text">本地广播</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android/" title="Android">Android<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Work/" title="Work">Work<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>2</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://github.com/njuptjsy" target="_blank" title="不积跬步无以至千里">我的github</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.njupt.edu.cn" target="_blank" title="南邮">南邮</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Siyu Jin in Github. <br/>
+			This is my blog,welcome.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Siyu Jin">Siyu Jin</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'guest';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

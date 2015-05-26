@@ -81,6 +81,80 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/05/25/Android开发技巧-广播/" title="Android开发技巧--广播" itemprop="url">Android开发技巧--广播</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-25T15:32:15.000Z" itemprop="datePublished"> 发表于 2015-05-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="概念总结">概念总结</h1><p>Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。</p>
+<h1 id="广播接收器">广播接收器</h1><p>广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。<br>广播接收器有两种注册方式，在代码中动态的注册和在AndroidManifest.xml 中静态的注册。<br>下面是动态注册的基本例子，首先声明一个类继承制BroadcastReceiver，并复写其中的onReceive()方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkChangeReceiver</span> <span class="keyword">extends</span> <span class="title">BroadcastReceiver</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">		Toast.makeText(context, <span class="string">"network changes"</span>,</span><br><span class="line">		Toast.LENGTH_SHORT).show();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着在注册这个接收器的时候，首先通过IntentFilter定义需要接受的动作，新建这个广播接收器对象并将其注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">intentFilter = <span class="keyword">new</span> IntentFilter();</span><br><span class="line">intentFilter.addAction(<span class="string">"android.net.conn.CONNECTIVITY_CHANGE"</span>);</span><br><span class="line">networkChangeReceiver = <span class="keyword">new</span> NetworkChangeReceiver();</span><br><span class="line">registerReceiver(networkChangeReceiver, intentFilter);</span><br></pre></td></tr></table></figure></p>
+<p>最后在不需要这个广播接收器时，需要将其取消注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unregisterReceiver(networkChangeReceiver);</span><br></pre></td></tr></table></figure></p>
+<p>下面是静态的注册广播接收器，非常简单，只需要在AndroidManifest.xml中声明一个接收器，给出其类名，以及需要接收的Intent<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootCompleteReceiver"</span> &gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span> /&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="发送广播">发送广播</h1><h2 id="标准广播">标准广播</h2><p>发送标准广播，只要在Intent对象中填入所需的广播名，在调用sendBroadcast()发送这个广播即可<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
+<h2 id="有序广播">有序广播</h2><p>和标准广播的区别就是发送广播时使用sendOrderedBroadcast()方法发送有序广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendOrderedBroadcast(intent, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure></p>
+<p>其中第一个参数是Intent，第二个参数表示权限，在注册广播接收器的时候，可以通过android:priority 属性给广播接收器设置优先级<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;receiver android:name=".MyBroadcastReceiver"&gt;</span><br><span class="line">	&lt;intent-filter android:priority="100" &gt;</span><br><span class="line">		&lt;action android:name="com.example.broadcasttest.MY_BROADCAST"/&gt;</span><br><span class="line">	&lt;/intent-filter&gt;</span><br><span class="line">&lt;/receiver&gt;</span><br></pre></td></tr></table></figure></p>
+<p>在接收到广播之后，可以在广播接收器中的onReceive()方法中使用abortBroadcast()方法将宝宝截断，后面优先级低于100的广播接收器就收不到该广播了。</p>
+<h1 id="本地广播">本地广播</h1><p>前面所说的广播都是属于系统广播，可以被其他程序截获，为了数据的安全性Android还有一套本地广播机制，即<em>的广播只能够在应用程序的内部进行传递，并且广播接收器也只能接收来自本应用程序发出的广播</em>。<br>本地广播主要使用LocalBroadcastManager对广播进行管理，首先通过getInstance方法获取LocalBroadcastManager对象实例<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">localBroadcastManager = LocalBroadcastManager.getInstance(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure></p>
+<p>在发送广播的时候，使用LocalBroadcastManager.sendBroadcast方法发送本地广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localBroadcastManager.sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
+<p>在注册广播接收器时使用localBroadcastManager.registerReceiver方法注册广播接收器，广播接收器中onReceiver和非本地广播一样<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">intentFilter.addAction(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localReceiver = <span class="keyword">new</span> LocalReceiver();</span><br><span class="line">localBroadcastManager.registerReceiver(localReceiver, intentFilter);<span class="comment">// 注册本地广播监听器</span></span><br></pre></td></tr></table></figure></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/25/Android开发技巧-广播/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/05/24/Android开发技巧-UI/" title="Android开发技巧--UI" itemprop="url">Android开发技巧--UI</a>
   </h1>
   <p class="article-author">By
@@ -350,76 +424,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/13/SimpleDateFormat引发的血案/" title="SimpleDateFormat引发的血案" itemprop="url">SimpleDateFormat引发的血案</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-13T15:53:46.000Z" itemprop="datePublished"> 发表于 2015-05-13</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>在研究从阿里云下载文件的时候(由于<a href="http://njuptjsy.github.io/2015/05/14/%E9%98%BF%E9%87%8C%E4%BA%91SDK%E5%9C%A8Android%E4%B8%8A%E7%9A%84%E4%B8%80%E4%B8%AAbug/" target="_blank" rel="external">阿里SDK不支持android</a>,所以用的是<a href="git@code.csdn.net:u011293176/aliyun_android_sdk.git">第三方SDK</a>)，总是出现dialog导致内存泄露的错误。找了许久的bug，最后发现，真正的原因是在Activity中出现异常导致生成dailog的Activity对象提前死亡，这时候dailog并没有dismiss。</p>
-<p>进一步研究发现真正的引起Activity死亡的错误是Ossclient客户端引起的unparseable date错误，最终的错误根源在jar包中，于是找来源码，将错误定位在下面的函数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">          <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">      SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format);</span><br><span class="line">      <span class="keyword">return</span> sdf.parse(dateString);</span><br></pre></td></tr></table></figure></p>
-<p>在执行字符串转换到date对象时，出现错误。查找到调用getDateFromString方法的函数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getGMTDateFromString</span><span class="params">(String dateStr)</span> <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getDateFromString(<span class="string">"E, dd MMM yyyy HH:mm:ss 'GMT'"</span>, dateStr);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
-<p>发现传入的形参format是E, dd MMM yyyy HH:mm:ss ‘GMT’这个格式在中文环境下并不支持，把手机的语言调成英文，错误就消失了。但是要在中文环境下运行不报错的方法就是在新建SimpleDateFormat类时，用第二个参数规定所在的地点在非中国地区。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Date <span class="title">getDateFromString</span><span class="params">(String format, String dateString)</span></span><br><span class="line">            <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">        SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(format,Locale.ENGLISH );</span><br><span class="line">        <span class="keyword">return</span> sdf.parse(dateString);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
-<p>下面进一步研究SimpleDateFormat这个类的问题，通过查阅<a href="http://tool.oschina.net/apidocs/" target="_blank" rel="external">OSChina的android API</a>（谷歌被墙你懂的）提供的在线文档可以看到SimpleDateFormat的构造方法有四个:<br> <img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/SimpleDateFormat%E5%BC%95%E5%8F%91%E7%9A%84%E8%A1%80%E6%A1%88pc1.png" alt="image"><br>其中<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public SimpleDateFormat(String pattern,Locale locale)</span><br><span class="line">Constructs <span class="operator">a</span> SimpleDateFormat <span class="keyword">using</span> <span class="operator">the</span> given pattern <span class="operator">and</span> <span class="operator">the</span> default <span class="built_in">date</span> <span class="built_in">format</span> symbols <span class="keyword">for</span> <span class="operator">the</span> given locale. Note: This constructor may <span class="operator">not</span> support all locales. For full coverage, use <span class="operator">the</span> factory methods <span class="operator">in</span> <span class="operator">the</span> DateFormat class.</span><br><span class="line">Parameters:pattern - <span class="operator">the</span> pattern describing <span class="operator">the</span> <span class="built_in">date</span> <span class="operator">and</span> <span class="built_in">time</span> formatlocale - <span class="operator">the</span> locale whose <span class="built_in">date</span> <span class="built_in">format</span> symbols should be used</span><br><span class="line">Throws:NullPointerException - <span class="keyword">if</span> <span class="operator">the</span> given pattern <span class="operator">or</span> locale is nullIllegalArgumentException - <span class="keyword">if</span> <span class="operator">the</span> given pattern is invalid</span><br></pre></td></tr></table></figure></p>
-<p>而public SimpleDateFormat(String pattern)使用传入的格式和系统所在地区默认的日期格式标志<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public SimpleDateFormat(String pattern)</span><br><span class="line">Constructs <span class="operator">a</span> SimpleDateFormat <span class="keyword">using</span> <span class="operator">the</span> given pattern <span class="operator">and</span> <span class="operator">the</span> default <span class="built_in">date</span> <span class="built_in">format</span> symbols <span class="keyword">for</span> <span class="operator">the</span> default locale. Note: This constructor may <span class="operator">not</span> support all locales. For full coverage, use <span class="operator">the</span> factory methods <span class="operator">in</span> <span class="operator">the</span> DateFormat class.</span><br><span class="line">Parameters:pattern - <span class="operator">the</span> pattern describing <span class="operator">the</span> <span class="built_in">date</span> <span class="operator">and</span> <span class="built_in">time</span> <span class="built_in">format</span></span><br><span class="line">Throws:NullPointerException - <span class="keyword">if</span> <span class="operator">the</span> given pattern is nullIllegalArgumentException - <span class="keyword">if</span> <span class="operator">the</span> given pattern is invalid</span><br></pre></td></tr></table></figure></p>
-<p>由于很多日期格式在中文语境下是不能转换成date对象，所以推荐使用指定local的构造函数</p>
-<p>题外话SimpleDateFormat不是线程安全的,可以看这篇精彩的<a href="http://www.cnblogs.com/peida/archive/2013/05/31/3070790.html" target="_blank" rel="external">文章</a><br>这也同时提醒我们在开发和设计系统的时候注意下一下三点:<br>　　1.自己写公用类的时候，要对多线程调用情况下的后果在注释里进行明确说明<br>　　2.多线程环境下，对每一个共享的可变变量都要注意其线程安全性<br>　　3.我们的类和方法在做设计的时候，要尽量设计成无状态的</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Work/">Work</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Debug/">Debug</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/13/SimpleDateFormat引发的血案/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -438,7 +442,7 @@
 		<ul>
 		
 		  
-			<li><a href="/categories/Android/" title="Android">Android<sup>5</sup></a></li>
+			<li><a href="/categories/Android/" title="Android">Android<sup>6</sup></a></li>
 		  
 		
 		  
@@ -455,11 +459,11 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>6</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>7</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Skills/" title="Skills">Skills<sup>4</sup></a></li>
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>5</sup></a></li>
 			
 		
 			
