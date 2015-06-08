@@ -81,6 +81,76 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/05/22/Android开发技巧-活动/" title="Android开发技巧--活动" itemprop="url">Android开发技巧--活动</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-22T15:28:13.000Z" itemprop="datePublished"> 发表于 2015-05-22</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>最近在书上看到一些关于的Activity组件相关的技巧，觉得可以记录下来以后开发时进行实践。</p>
+<h1 id="显示活动名称">显示活动名称</h1><p>首先是实现进入一个活动就可以观察到自己进入的活动类的名称，这个非常简单但是在程序调试阶段比较有用，我们需要兴建一个类基础Activity类<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">		Log.d(<span class="string">"now in Activty: "</span>, getClass().getSimpleName());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着在项目中的每个活动类都继承子BaseActivity而不是Activity类，可以看到这里仅仅是在覆盖的onCreate方法利用java的放射机制打印出当前的类名。当然这里也存在一个问题，如果自定义的活动类不是继承自Activity而是其子类如FragmentActivity就不会打印出相应的类名</p>
+<h1 id="不使用活动栈，从任何一个活动退出">不使用活动栈，从任何一个活动退出</h1><p>解决的思路很简单，新建一个活动在每个活动管理器类，用列表保存现在活动栈中所有的活动，当需要退出程序调用每个Activity对象的finish方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ActivityCollector</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> List&lt;Activity&gt; activities = <span class="keyword">new</span> ArrayList&lt;Activity&gt;();</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addActivity</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">		activities.add(activity);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">removeActivity</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">		activities.remove(activity);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">finishAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (Activity activity : activities) &#123;</span><br><span class="line">			<span class="keyword">if</span> (!activity.isFinishing()) &#123;</span><br><span class="line">				activity.finish();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面在BaseActivity覆盖的onCreate方法中加入，将活动添加到ActivityCollector的成员变量中的语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span></span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span></span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">		Log.d(<span class="string">"now is Activity: "</span>, getClass().getSimpleName());</span><br><span class="line">		ActivityCollector.addActivity(<span class="keyword">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onDestroy();</span><br><span class="line">		ActivityCollector.removeActivity(<span class="keyword">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是在任何一个活动中就可以调用ActivityCollector的finishAll方法直接退出应用了</p>
+<h1 id="间接的启动活动">间接的启动活动</h1><p>传统的通过intent启动一个方法，在遇到需要启动其他人书写的活动时就不那么方便了，必须要阅读他人书写的活动源码，才能知道需要在intent中传递什么样的参数，通过下面的方法可以很轻易的告诉别人启动自己的活动需要哪些参数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">testActivity</span> <span class="keyword">extends</span> <span class="title">BaseActivity</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">actionStart</span><span class="params">(Context context, String data1, String data2)</span> </span>&#123;</span><br><span class="line">		Intent intent = <span class="keyword">new</span> Intent(context, SecondActivity.class);</span><br><span class="line">		intent.putExtra(<span class="string">"param1"</span>, data1);</span><br><span class="line">		intent.putExtra(<span class="string">"param2"</span>, data2);</span><br><span class="line">		context.startActivity(intent);</span><br><span class="line">	&#125;</span><br><span class="line">……</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>再启动testActivity时只要调用actionStart方法并按照方法中声明的参数传入相应的数据即可。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/22/Android开发技巧-活动/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/05/14/阿里云SDK在Android上的一个bug/" title="阿里云SDK在Android上的一个bug" itemprop="url">阿里云SDK在Android上的一个bug</a>
   </h1>
   <p class="article-author">By
@@ -345,77 +415,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github" itemprop="url">How to deploy blog on github</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-09T07:39:44.013Z" itemprop="datePublished"> 发表于 2015-05-09</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="安装准备">安装准备</h1><p>首先需要有自己的github并且创建自己的个人站点，下载好<a href="https://nodejs.org/&quot;Node官网&quot;" target="_blank" rel="external">Node.j</a></p>
-<h1 id="安装Hexo">安装Hexo</h1><p>之前试过使用jekyll是在是觉累不爱了，国内连ruby的官方源都被墙了，必须要换淘宝源。如果想使用jekyll搭建可以参考<a href="http://www.cnblogs.com/purediy/archive/2013/03/07/2948892.html" target="_blank" rel="external">这篇文章</a>。</p>
-<p>安装好Node.js之后，重启git shell，使用如下命令安装hexo<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo</span><br></pre></td></tr></table></figure></p>
-<p>在磁盘上新建一个hexo文件夹，在git shell中将工作路径切换到该文件夹下，运行如下命令<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo init</span><br></pre></td></tr></table></figure></p>
-<p>Hexo随后会自动在目标文件夹建立网站所需要的所有文件。这时可以通过下面的命令预览现在blog的效果，在浏览器中输入localhost:4000<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hexo g</span><br><span class="line">$ hexo s</span><br></pre></td></tr></table></figure></p>
-<p>这时就可以看到一个最基础的hexo blog的效果。</p>
-<h2 id="修改主题">修改主题</h2><p>如果不想用原有的主题可以使用其他主题，以我的主题为例<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/wuchong/jacman.git themes/jacman</span><br></pre></td></tr></table></figure></p>
-<p>接着，修改Hexo根目录下的config.yml配置文件中的theme属性，将其设置为jacman。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">theme: jacman</span><br></pre></td></tr></table></figure></p>
-<p>使用下面的命令更新主题</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> themes/jacman</span><br><span class="line">$ git pull</span><br></pre></td></tr></table></figure>
-<p>这时可以使用这三条命令来预览现在的blog</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean</span><br><span class="line">$ hexo g</span><br><span class="line">$ hexo s</span><br></pre></td></tr></table></figure>
-<h1 id="部署到Github">部署到Github</h1><p>部署到Github前需要配置_config.yml文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: git</span><br><span class="line">  repository: git@github.com:njuptjsy/njuptjsy.github.com.git</span><br><span class="line">  branch: master</span><br><span class="line">  message:XXXX</span><br></pre></td></tr></table></figure></p>
-<p>这一步要注意的有两点，第一是type:后面需要接一个空格在接上需要的值，而且type:的属性相对于deploy都有两个空格的缩进。第二type:github这个类型不再支持了，需要先<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></p>
-<p>在把type:改成git<br>下面提交到github<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean</span><br><span class="line">$ hexo generate</span><br><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure></p>
-<h1 id="修改Hexo设置">修改Hexo设置</h1><p>网站搭建完成后，就可以根据自己爱好来对Hexo生成的网站进行设置了，对整站的设置，只要修改项目目录的_config.yml就可以了，这是我的设置，可供参考。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Hexo Configuration</span></span><br><span class="line"><span class="comment">## Docs: http://hexo.io/docs/configuration.html</span></span><br><span class="line"><span class="comment">## Source: https://github.com/hexojs/hexo/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Site</span></span><br><span class="line">title: More Than Words</span><br><span class="line">subtitle:Perfection<span class="string">'snot attainable, but if we chase it we can catch excellence..</span><br><span class="line">description:学习总结 思考感悟 知识管理</span><br><span class="line">author: Siyu Jin</span><br><span class="line">language:zh-CN</span><br><span class="line">timezone:</span><br><span class="line"></span><br><span class="line"># URL</span><br><span class="line">## If your site is put in a subdirectory, set url as '</span>http://yoursite.com/child<span class="string">' and root as '</span>/child/<span class="string">'</span><br><span class="line">url: http://njuptjsy.github.io/</span><br><span class="line">root: /</span><br><span class="line">permalink: :year/:month/:day/:title/</span><br><span class="line">permalink_defaults:</span><br><span class="line"></span><br><span class="line"># Directory</span><br><span class="line">source_dir: source</span><br><span class="line">public_dir: public</span><br><span class="line">tag_dir: tags</span><br><span class="line">archive_dir: archives</span><br><span class="line">category_dir: categories</span><br><span class="line">code_dir: downloads/code</span><br><span class="line">i18n_dir: :lang</span><br><span class="line">skip_render:</span><br><span class="line"></span><br><span class="line"># Writing</span><br><span class="line">new_post_name: :title.md # File name of new posts</span><br><span class="line">default_layout: post</span><br><span class="line">titlecase: false # Transform title into titlecase</span><br><span class="line">external_link: true # Open external links in new tab</span><br><span class="line">filename_case: 0</span><br><span class="line">render_drafts: false</span><br><span class="line">post_asset_folder: false</span><br><span class="line">relative_link: false</span><br><span class="line">future: true</span><br><span class="line">highlight:</span><br><span class="line">  enable: true</span><br><span class="line">  line_number: true</span><br><span class="line">  tab_replace:</span><br><span class="line"></span><br><span class="line"># Category &amp; Tag</span><br><span class="line">default_category: uncategorized</span><br><span class="line">category_map:</span><br><span class="line">tag_map:</span><br><span class="line"></span><br><span class="line"># Date / Time format</span><br><span class="line">## Hexo uses Moment.js to parse and display date</span><br><span class="line">## You can customize the date format as defined in</span><br><span class="line">## http://momentjs.com/docs/#/displaying/format/</span><br><span class="line">date_format: YYYY-MM-DD</span><br><span class="line">time_format: HH:mm:ss</span><br><span class="line"></span><br><span class="line"># Pagination</span><br><span class="line">## Set per_page to 0 to disable pagination</span><br><span class="line">per_page: 10</span><br><span class="line">pagination_dir: page</span><br><span class="line"></span><br><span class="line"># Extensions</span><br><span class="line">## Plugins: http://hexo.io/plugins/</span><br><span class="line">## Themes: http://hexo.io/themes/</span><br><span class="line">theme: jacman</span><br><span class="line"></span><br><span class="line"># Deployment</span><br><span class="line">## Docs: http://hexo.io/docs/deployment.html</span><br><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repository: git@github.com:njuptjsy/njuptjsy.github.com.git</span><br><span class="line">  branch: master</span><br><span class="line">  message: this is frist try</span></span><br></pre></td></tr></table></figure></p>
-<p>这里需要注意的是，所以冒号后面必须有一个空格</p>
-<h1 id="修改局部页面">修改局部页面</h1><p>页面展现的全部逻辑都在每个主题中控制，源代码在hexo\themes\jacman\中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── languages  <span class="comment">#多语言</span></span><br><span class="line">|   ├── default.yml<span class="comment">#默认语言</span></span><br><span class="line">|   └── zh-CN.yml  <span class="comment">#中文语言</span></span><br><span class="line">├── layout <span class="comment">#布局，根目录下的*.ejs文件是对主页，分页，存档等的控制</span></span><br><span class="line">|   ├── _partial   <span class="comment">#局部的布局，此目录下的*.ejs是对头尾等局部的控制</span></span><br><span class="line">|   └── _widget<span class="comment">#小挂件的布局，页面下方小挂件的控制</span></span><br><span class="line">├── <span class="built_in">source</span> <span class="comment">#源码</span></span><br><span class="line">|   ├── css<span class="comment">#css源码 </span></span><br><span class="line">|   |   ├── _base  <span class="comment">#*.styl基础css</span></span><br><span class="line">|   |   ├── _partial   <span class="comment">#*.styl局部css</span></span><br><span class="line">|   |   ├── fonts  <span class="comment">#字体</span></span><br><span class="line">|   |   ├── images <span class="comment">#图片</span></span><br><span class="line">|   |   └── style.styl <span class="comment">#*.styl引入需要的css源码</span></span><br><span class="line">|   ├── fancybox   <span class="comment">#fancybox效果源码</span></span><br><span class="line">|   └── js <span class="comment">#javascript源代码</span></span><br><span class="line">├── _config.yml<span class="comment">#主题配置文件</span></span><br><span class="line">└── README.md  <span class="comment">#用GitHub的都知道</span></span><br></pre></td></tr></table></figure></p>
-<p>到这里一个简单的hexo搭建的博客就部署好了，使用markdown写博的语法可以阅读<a href="http://ibruce.info/2013/11/26/markdown/" target="_blank" rel="external">这篇文章</a></p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/09/how-to-deploy-blog-in-github/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">Next<span></span></a>
@@ -438,7 +437,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>2</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>3</sup></a></li>
 		  
 		
 		</ul>
@@ -459,7 +458,11 @@
 			
 		
 			
-				<li><a href="/tags/Debug/" title="Debug">Debug<sup>2</sup></a></li>
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-Code，CloudClient/" title="Android Code，CloudClient">Android Code，CloudClient<sup>1</sup></a></li>
 			
 		
 		</ul>

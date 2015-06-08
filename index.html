@@ -77,6 +77,78 @@
 
    
     
+    <article class="post-expand new" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/" title="阿里云实现listBucket--开发笔记" itemprop="url">阿里云实现listBucket--开发笔记</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="背景">背景</h1><p>开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。</p>
+<p>通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/service&amp;GetService" target="_blank" rel="external">GetService操作</a>需要构造一个格式如下的Http请求报文<br><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">oss.aliyuncs.com</span></span><br><span class="line"><span class="attribute">Date</span>: <span class="string">GMT Date</span></span><br><span class="line"><span class="attribute">Authorization</span>: <span class="string">SignatureValue</span></span><br></pre></td></tr></table></figure></p>
+<p>其他的都不难理解，就唯独其中的签名Authorization: SignatureValue的生成让人费解，光是看阿里云提供的<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/access-control&amp;signature-header" target="_blank" rel="external">签名生成方法</a>就花了很大精力。<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"Authorization: OSS "</span> + Access Key Id + <span class="string">":"</span> + Signature</span><br><span class="line"></span><br><span class="line">Signature = base64<span class="list">(<span class="keyword">hmac-sha1</span><span class="list">(<span class="keyword">AccessKeySecret</span>,</span><br><span class="line">            VERB + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-MD5 + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-TYPE + <span class="string">"\n"</span> </span><br><span class="line">            + DATE + <span class="string">"\n"</span> </span><br><span class="line">            + CanonicalizedOSSHeaders</span><br><span class="line">            + CanonicalizedResource)</span>)</span></span><br></pre></td></tr></table></figure></p>
+<p>花了很长时间研究CONTENT-MD5、CONTENT-TYPE到底是什么，还有给出的例子中明明是先用RFC 2104中定义的HMAC-SHA1方法以Access Key Secret为密钥加密然后再BASE64编码成字符串就可以了，但在下面的Python实现中还用到digest方法计算加密后数据的MD5，到底那个是正确的让人很迷惑。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> hmac</span><br><span class="line"><span class="keyword">import</span> sha</span><br><span class="line">h = hmac.new(<span class="string">"OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV"</span>,</span><br><span class="line">             <span class="string">"PUT\nODBGOERFMDMzQTczRUY3NUE3NzA5QzdFNUYzMDQxNEM=\ntext/html\nThu, 17 Nov 2005 18:49:58 GMT\nx-oss-magic:abracadabra\nx-oss-meta-author:foo@bar.com\n/oss-example/nelson"</span>, sha)</span><br><span class="line">base64.encodestring(h.digest()).strip()</span><br></pre></td></tr></table></figure></p>
+<h1 id="问题描述">问题描述</h1><p>综上所述，在花了很长时间理解阿里云的文档之后，开始实现getService服务。第一步,需要通过HttpClient构建一个HttpGet消息。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpClient = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">String host = <span class="string">"oss.aliyuncs.com"</span>;</span><br><span class="line"></span><br><span class="line">URI url = URIUtils.createURI(<span class="string">"http"</span>, host, -<span class="number">1</span>, <span class="string">"/"</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);<span class="comment">//ublic static URI createURI(String scheme,String host,int port,String path,String query,String fragment)</span></span><br><span class="line">LogUtil.i(<span class="string">"QueryAliyun:sendHttpGet"</span>, url+<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">HttpGet httpGet = <span class="keyword">new</span> HttpGet(url);</span><br><span class="line">httpGet.addHeader(<span class="string">"Date"</span>, getSystemTime());</span><br><span class="line">httpGet.addHeader(<span class="string">"Host"</span>,<span class="string">"oss.aliyuncs.com"</span>);</span><br><span class="line">httpGet.addHeader(<span class="string">"Authorization"</span>, getSignature());</span><br></pre></td></tr></table></figure></p>
+<p>第二步，需要按照文档中描述的方式对本次请求进行加密。问题就出现在这一步<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getSignature</span><span class="params">()</span></span>&#123;</span><br><span class="line">		String encryptText = <span class="string">"GET"</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + getSystemTime() + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span></span><br><span class="line">	            + <span class="string">"/"</span>;</span><br><span class="line">		</span><br><span class="line">		String signature = <span class="string">""</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			String signatureTemp = ClientUtils.HmacSHA1Encrypt(InfoContainer.ALIYUN_SCRECT_ID, encryptText);</span><br><span class="line">       </span><br><span class="line">			signature = Base64.encodeToString(signatureTemp.getByte(), Base64.DEFAULT).trim();</span><br><span class="line">			</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			LogUtil.e(<span class="string">"QueryAliyun:getSignature"</span>, <span class="string">" catch exception in HmacSHA1Encrypt"</span>);</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">		String authorization = <span class="string">"OSS "</span> + InfoContainer.ALIYUN_ACCESS_ID + <span class="string">":"</span> + signature;</span><br><span class="line">		<span class="keyword">return</span> authorization;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我将要加密的文本按照指定的算法进行加密，返回加密结果字符串，再使用BASE64方式编码，与服务器通信后始终是403错误。研究了很久，发现使用阿里云提供的方法对同样的内容进行签名操作就可以通信，于是我将该方法的结果进行BASE64解码，发现解码的结果和使用ClientUtils.HmacSHA1Encrypt方法放回的字符串一样。根据这个结论进一步研究猜测问题出现在signatureTemp.getByte()这个方法上，我将加密的结果作为byte[]返回，而不是先转换成字符串在装换成byte数组，再进行BASE64编码就可以正常通信了。</p>
+<p>这让我怀疑通过new String()得到的字符串，再进行getByte[]操作无法得到原有的byte数组。因为new String和getByte方法在不指定编码方式的情况下都是使用当前环境的编码方式，这里是UTF-8，于是我使用了下面的方法进行测试<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">testGetbyte</span><span class="params">(<span class="keyword">byte</span>[] signatureTemp)</span> </span>&#123;</span><br><span class="line">		String testString;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			testString = <span class="keyword">new</span> String(signatureTemp,<span class="string">"UTF-8"</span>);</span><br><span class="line">			<span class="keyword">byte</span>[] testBytes = testString.getBytes(<span class="string">"UTF-8"</span>);</span><br><span class="line">			LogUtil.i(<span class="string">"QueryAliyun:testGetbyte"</span>, signatureTemp + <span class="string">" and "</span> + testBytes);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>发现在utf-8的编码规则下，将byte数组装换成字符串在将字符串转换成byte数组，源数组不等于操作过后的数组。进一步研究，发现原因是因为UTF-8编码方式并不是采用单字节的编码方式进行转换，如果将这里的编码方式改成ISO-8859-1，源数组就和操作后的得到的数组一致了。</p>
+<p>这里不得不吐槽下阿里云的Android API,对各项操作的封装不全也就算了，文档中几乎没有说明性的描述，绝大部分函数都没有任何的说明的文字，传入的形参和返回值也只告诉你类型，使用基本靠猜。即使对自己的命名再有信心，几句说明还是应该有的，具体可以看看AWS的API。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E9%98%BF%E9%87%8C%E4%BA%91androidAPI%E6%88%AA%E5%9B%BE.png" alt="image"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Work/">Work</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code，CloudClient/">Android Code，CloudClient</a><a href="/tags/Debug/">Debug</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
     <article class="post-expand post" itemprop="articleBody"> 
         <header class="article-info clearfix">
   <h1 itemprop="name">
@@ -365,76 +437,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/22/Android开发技巧-活动/" title="Android开发技巧--活动" itemprop="url">Android开发技巧--活动</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T15:28:13.000Z" itemprop="datePublished"> 发表于 2015-05-22</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>最近在书上看到一些关于的Activity组件相关的技巧，觉得可以记录下来以后开发时进行实践。</p>
-<h1 id="显示活动名称">显示活动名称</h1><p>首先是实现进入一个活动就可以观察到自己进入的活动类的名称，这个非常简单但是在程序调试阶段比较有用，我们需要兴建一个类基础Activity类<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">		Log.d(<span class="string">"now in Activty: "</span>, getClass().getSimpleName());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>接着在项目中的每个活动类都继承子BaseActivity而不是Activity类，可以看到这里仅仅是在覆盖的onCreate方法利用java的放射机制打印出当前的类名。当然这里也存在一个问题，如果自定义的活动类不是继承自Activity而是其子类如FragmentActivity就不会打印出相应的类名</p>
-<h1 id="不使用活动栈，从任何一个活动退出">不使用活动栈，从任何一个活动退出</h1><p>解决的思路很简单，新建一个活动在每个活动管理器类，用列表保存现在活动栈中所有的活动，当需要退出程序调用每个Activity对象的finish方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ActivityCollector</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> List&lt;Activity&gt; activities = <span class="keyword">new</span> ArrayList&lt;Activity&gt;();</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addActivity</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">		activities.add(activity);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">removeActivity</span><span class="params">(Activity activity)</span> </span>&#123;</span><br><span class="line">		activities.remove(activity);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">finishAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (Activity activity : activities) &#123;</span><br><span class="line">			<span class="keyword">if</span> (!activity.isFinishing()) &#123;</span><br><span class="line">				activity.finish();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>下面在BaseActivity覆盖的onCreate方法中加入，将活动添加到ActivityCollector的成员变量中的语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span></span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span></span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">		Log.d(<span class="string">"now is Activity: "</span>, getClass().getSimpleName());</span><br><span class="line">		ActivityCollector.addActivity(<span class="keyword">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onDestroy();</span><br><span class="line">		ActivityCollector.removeActivity(<span class="keyword">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这是在任何一个活动中就可以调用ActivityCollector的finishAll方法直接退出应用了</p>
-<h1 id="间接的启动活动">间接的启动活动</h1><p>传统的通过intent启动一个方法，在遇到需要启动其他人书写的活动时就不那么方便了，必须要阅读他人书写的活动源码，才能知道需要在intent中传递什么样的参数，通过下面的方法可以很轻易的告诉别人启动自己的活动需要哪些参数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">testActivity</span> <span class="keyword">extends</span> <span class="title">BaseActivity</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">actionStart</span><span class="params">(Context context, String data1, String data2)</span> </span>&#123;</span><br><span class="line">		Intent intent = <span class="keyword">new</span> Intent(context, SecondActivity.class);</span><br><span class="line">		intent.putExtra(<span class="string">"param1"</span>, data1);</span><br><span class="line">		intent.putExtra(<span class="string">"param2"</span>, data2);</span><br><span class="line">		context.startActivity(intent);</span><br><span class="line">	&#125;</span><br><span class="line">……</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>再启动testActivity时只要调用actionStart方法并按照方法中声明的参数传入相应的数据即可。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/22/Android开发技巧-活动/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -457,7 +459,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>2</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>3</sup></a></li>
 		  
 		
 		</ul>
@@ -478,7 +480,11 @@
 			
 		
 			
-				<li><a href="/tags/Debug/" title="Debug">Debug<sup>2</sup></a></li>
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Android-Code，CloudClient/" title="Android Code，CloudClient">Android Code，CloudClient<sup>1</sup></a></li>
 			
 		
 		</ul>
