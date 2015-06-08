@@ -81,78 +81,6 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/22/Android开发技巧-其它技巧/" title="Android开发技巧--其它技巧" itemprop="url">Android开发技巧--其它技巧</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T15:56:43.000Z" itemprop="datePublished"> 发表于 2015-05-22</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="1-使用Intent传递对象">1.使用Intent传递对象</h1><p>典型的使用putExtra()以键值对的形式将数据放入Intent对象中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">intent.putExtra(<span class="string">"string_data"</span>, <span class="string">"hello"</span>);</span><br><span class="line">intent.putExtra(<span class="string">"int_data"</span>, <span class="number">100</span>);</span><br></pre></td></tr></table></figure></p>
-<p>在用相应的getXXXExtra()方法将数据取出<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getIntent().getStringExtra(<span class="string">"string_data"</span>);</span><br><span class="line">getIntent().getIntExtra(<span class="string">"int_data"</span>, <span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
-<p>但是getXXXExtra()方法中所支持的数据类型是有限的，比如自定义的对象存储在Intent就无法通过getXXXExtra()方法取出。这个时候就可以使用Serializable或Parcelable方式</p>
-<h2 id="Serializable序列化">Serializable序列化</h2><p>在自定义的类中通过继承Serializable接口就可以将需要序列化的类，进行序列化，对这个类中不需要序列化的成员变量可以使用transient关键字对其进行声明。比如我们将自定义的实现了Serializable接口的类person对象存入Intent中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">intent.putExtra(<span class="string">"person_data"</span>, person);</span><br></pre></td></tr></table></figure></p>
-<p>取出的对象的时候就可以使用如下语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Person person = (Person) getIntent().getSerializableExtra(<span class="string">"person_data"</span>);</span><br></pre></td></tr></table></figure></p>
-<h2 id="Parcelable方式">Parcelable方式</h2><p>Parcelable 方式的实现方式与Serializable方式不同，它是通过将一个完整的对象分解成Intent支持的数据类型。<br>首先让自定义的类实现Parcelale接口，接着复写其中的describeContents()和writeToParcel()两个方法。在其中writeToParcel()方法中调用Parcel<br>对象的writeXxx()方法将自定义类中的成员变量一一写入。<br>最后，新建一个public static final Parcelable.Creator&lt;自定义类&gt; CREATOR常量，实现Parcelable.Creator&lt;自定义类&gt;接口，并将泛型制动成自定义的类，接着复写createFromParcel()和newArray()这两个方法，在createFromParcel()方法去读取刚才写出的自定义的类中成员变量<br>，并利用读取到的成员变量创建一个自定义对象进行返回。注意这里读取的顺序一定要和刚才写出的顺序完全相同。而newArray()方法中的实现就简单多了，只需要new 出一个自定义类数组，并使用方法中传入的size作为数组大小就可以了。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Parcelable</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">	……</span><br><span class="line">	</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">describeContents</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writeToParcel</span><span class="params">(Parcel dest, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">		dest.writeString(name); <span class="comment">// 写出name</span></span><br><span class="line">		dest.writeInt(age); <span class="comment">// 写出age</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Parcelable.Creator&lt;Person&gt; CREATOR = <span class="keyword">new</span> Parcelable.Creator&lt;Person&gt;() &#123;</span><br><span class="line">		<span class="annotation">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> Person <span class="title">createFromParcel</span><span class="params">(Parcel source)</span> </span>&#123;</span><br><span class="line">			Person person = <span class="keyword">new</span> Person();</span><br><span class="line">			person.name = source.readString(); <span class="comment">// 读取name</span></span><br><span class="line">			person.age = source.readInt(); <span class="comment">// 读取age</span></span><br><span class="line">			<span class="keyword">return</span> person;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="annotation">@Override</span></span><br><span class="line">		<span class="keyword">public</span> Person[] newArray(<span class="keyword">int</span> size) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">new</span> Person[size];</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>相应的取出对象时使用语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Person person = (Person) getIntent().getParcelableExtra(<span class="string">"person_data"</span>);</span><br></pre></td></tr></table></figure></p>
-<h1 id="2-自定制日志工具">2.自定制日志工具</h1><p>为了在应用上线之后去掉打印日志，或者实现打印自定义级别的日志，如只打印Error级别日志信息，我们可以自定义一个日志类，对日志的信息进行管理。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogUtil</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> VERBOSE = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEBUG = <span class="number">2</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> INFO = <span class="number">3</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> WARN = <span class="number">4</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ERROR = <span class="number">5</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NOTHING = <span class="number">6</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> LEVEL = VERBOSE;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">v</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= VERBOSE) &#123;</span><br><span class="line">			Log.v(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">d</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= DEBUG) &#123;</span><br><span class="line">			Log.d(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">i</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= INFO) &#123;</span><br><span class="line">			Log.i(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">w</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= WARN) &#123;</span><br><span class="line">			Log.w(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">e</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= ERROR) &#123;</span><br><span class="line">			Log.e(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>如上所示在LogUtil中可以通过调整Level的大小来自定义的打印的log的基本，Level为1表示打印全部log，为6表示所有级别都不打印，1到6打印的log的重要级别依次上升。</p>
-<h1 id="3-TDD在Android开发中应用">3.TDD在Android开发中应用</h1><p>创建Android Test Project为相应的项目进行测试，生产的测试项目的AndroidManifest.xml文件中会指出该测试的目标项目，通过继承AndroidTestCase就可以编写测试类，在其中编写各种测试方法，具体的使用方法和java中junit的一样，可以看我github上<a href="https://github.com/njuptjsy/AgileJavaNote" target="_blank" rel="external">AgileJavaNote</a>这个项目。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/22/Android开发技巧-其它技巧/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
       <a href="/2015/05/22/Android开发技巧-活动/" title="Android开发技巧--活动" itemprop="url">Android开发技巧--活动</a>
   </h1>
   <p class="article-author">By
@@ -416,6 +344,77 @@
 
 
 
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/11/获取Android手机内测CPU等信息/" title="获取Android手机内测CPU等信息" itemprop="url">获取Android手机内测CPU等信息</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-11T14:36:43.000Z" itemprop="datePublished"> 发表于 2015-05-11</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>出于毕设客户端的开发需要，想要收集Android设备的内存、CPU、存储和电量信息，通过查找现在这四个信息的获取代码如下：</p>
+<h1 id="电量信息">电量信息</h1><p>通过广播实现，系统在电池电量信息发送变化时，回向外发送广播。只要注册一个监听Intent.ACTION_BATTERY_CHANGED的广播接收器并声明权限即可。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">batteryLevel</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">		BroadcastReceiver batteryLevelReceiver = <span class="keyword">new</span> BroadcastReceiver() &#123;  </span><br><span class="line">			<span class="keyword">int</span> scale = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> level = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> voltage = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> temperature = -<span class="number">1</span>;</span><br><span class="line">	        <span class="annotation">@Override</span></span><br><span class="line">	        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">	            level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -<span class="number">1</span>);</span><br><span class="line">	            scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -<span class="number">1</span>);</span><br><span class="line">	            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -<span class="number">1</span>);</span><br><span class="line">	            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -<span class="number">1</span>);</span><br><span class="line">	            Log.i(<span class="string">"BatteryManager"</span>, <span class="string">"level is "</span>+level+<span class="string">"/"</span>+scale+<span class="string">", temp is "</span>+ temperature +<span class="string">", voltage is "</span>+voltage);</span><br><span class="line">	        &#125;</span><br><span class="line">	    &#125;;</span><br><span class="line">	    IntentFilter filter = <span class="keyword">new</span> IntentFilter(Intent.ACTION_BATTERY_CHANGED);</span><br><span class="line">	    MyApplication.getContext().registerReceiver(batteryLevelReceiver, filter);</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里要注意的是在广播接收器BroadcastReceiver的onReceiver方法中的语句只会在接受到系统广播之后才能得到执行，若果刚刚注册这个广播监听器接着就是获取系统电量，那么一定会遇到得到的电量为0等问题，可以参见stackoverflow上<a href="http://stackoverflow.com/questions/23290955/getting-battery-level-on-android/30210804#30210804" target="_blank" rel="external">这个问题</a>。解决方法应该是先注册广播接收器，一段时间后在获取电量信息。</p>
+<h1 id="CPU使用率">CPU使用率</h1><p>主要是借助top命令，这里我只需要用户的cup使用率和系统cup使用率两个参数即可，所以只需输出的第一行如下<br><code>User 7%, System 8%, IOW 0%, IRQ 0%</code><br>实现的代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CpuUsage</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		String topresult;</span><br><span class="line">		Process process = Runtime.getRuntime().exec(<span class="string">"top -n 1"</span>);</span><br><span class="line"></span><br><span class="line">		BufferedReader br=<span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">		<span class="keyword">while</span>((topresult = br.readLine())!=<span class="keyword">null</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(topresult.trim().length()&lt;<span class="number">1</span>)&#123;</span><br><span class="line">				<span class="keyword">continue</span>;</span><br><span class="line">			&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">				Log.i(<span class="string">"CpuUsage"</span>, topresult);</span><br><span class="line">				String[] cpuInfoStrings = topresult.split(<span class="string">","</span>);</span><br><span class="line">				cpuInfo = <span class="keyword">new</span> HashMap&lt;String,Integer&gt;();</span><br><span class="line">				cpuInfo.put(<span class="string">"Users"</span>,findNumInString(cpuInfoStrings[<span class="number">0</span>]));</span><br><span class="line">				cpuInfo.put(<span class="string">"sys"</span>, findNumInString(cpuInfoStrings[<span class="number">1</span>]));</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">findNumInString</span><span class="params">(String cpuInfoString)</span></span>&#123;</span><br><span class="line">		<span class="keyword">int</span> percent;</span><br><span class="line">		Pattern pattern = Pattern.compile(<span class="string">"\\w*\\s(\\d*)\\%"</span>); </span><br><span class="line">		Matcher matcher = pattern.matcher(cpuInfoString);</span><br><span class="line">		<span class="keyword">if</span> (matcher.find()) &#123;</span><br><span class="line">			String temp = matcher.group(<span class="number">1</span>);</span><br><span class="line">			percent = Integer.parseInt(temp);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			percent = -<span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> percent;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="存储信息">存储信息</h1><p>存储信息分为SD卡和系统自身的，手机自身除了系统之外的存储空间被称为ExternalStorage，这里要注意这不是值自己的插入的TF卡</p>
+<h2 id="SD卡信息">SD卡信息</h2><p>下面是获取SD卡存储空间的代码，主要是获取块数量和每块的大小<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">SDCardSize</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">		String state = Environment.getExternalStorageState();  </span><br><span class="line">		<span class="keyword">if</span> (Environment.MEDIA_MOUNTED.equals(state)) &#123;  </span><br><span class="line">			File sdcardDir = Environment.getExternalStorageDirectory();  </span><br><span class="line">			StatFs sf = <span class="keyword">new</span>  StatFs(sdcardDir.getPath());  </span><br><span class="line">			<span class="keyword">long</span>  blockSize = sf.getBlockSize();  </span><br><span class="line">			<span class="keyword">long</span>  blockCount = sf.getBlockCount();  </span><br><span class="line">			<span class="keyword">long</span>  availCount = sf.getAvailableBlocks();  </span><br><span class="line">			Log.d(<span class="string">""</span> ,  <span class="string">"block大小:"</span> + blockSize+ <span class="string">",block数目:"</span> + blockCount+ <span class="string">",总大小:"</span> +blockSize*blockCount/ <span class="number">1024</span> /<span class="number">1024</span>+ <span class="string">"MB"</span> ); </span><br><span class="line">			totalSizeInSd = blockSize*blockCount/ <span class="number">1024</span> /<span class="number">1024</span>;</span><br><span class="line">			Log.d(<span class="string">""</span> ,  <span class="string">"可用的block数目：:"</span> + availCount+ <span class="string">",剩余空间:"</span> + availCount*blockSize/ <span class="number">1024</span> /<span class="number">1024</span>+ <span class="string">"MB"</span> );</span><br><span class="line">			usefulSizeInSd = availCount*blockSize/ <span class="number">1024</span> / <span class="number">1024</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			totalSizeInSd = <span class="number">0L</span>;</span><br><span class="line">			usefulSizeInSd = <span class="number">0L</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="内部存储信息">内部存储信息</h2><p>原理很SD卡一样，都是根据块数量和每块的大小<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">internalStorageSize</span><span class="params">()</span></span>&#123;</span><br><span class="line">		File root = Environment.getRootDirectory();  </span><br><span class="line">		StatFs sf = <span class="keyword">new</span> StatFs(root.getPath());  </span><br><span class="line">		<span class="keyword">long</span> blockSize = sf.getBlockSize();  </span><br><span class="line">		<span class="keyword">long</span> blockCount = sf.getBlockCount();  </span><br><span class="line">		<span class="keyword">long</span> availCount = sf.getAvailableBlocks();  </span><br><span class="line">		Log.d(<span class="string">""</span>, <span class="string">"block大小:"</span>+ blockSize+<span class="string">",block数目:"</span>+ blockCount+<span class="string">",总大小:"</span>+blockSize*blockCount/<span class="number">1024</span>+<span class="string">"MB"</span>); </span><br><span class="line">		totalSizeInternal = blockSize*blockCount/<span class="number">1024</span>/<span class="number">1024</span>;</span><br><span class="line">		Log.d(<span class="string">""</span>, <span class="string">"可用的block数目：:"</span>+ availCount+<span class="string">",可用大小:"</span>+ availCount*blockSize/<span class="number">1024</span>+<span class="string">"MB"</span>); </span><br><span class="line">		usefulSizeInternal = availCount*blockSize/<span class="number">1024</span>/<span class="number">1024</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="内存信息">内存信息</h1><p>内存主要是通过获取系统活动管理器对象（ActivityManager）和ActivityManager.MemoryInfo对象，调用ActivityManager对象的getMemoryInfo方法，将Android内存信息保存在在ActivityManager.MemoryInfo对象对象中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">memoryInfo</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="comment">//获得MemoryInfo对象</span></span><br><span class="line">		ActivityManager.MemoryInfo memoryInfo = <span class="keyword">new</span> ActivityManager.MemoryInfo();</span><br><span class="line">		<span class="comment">//获取系统服务信息</span></span><br><span class="line">		ActivityManager myActivityManager = (ActivityManager)MyApplication.getContext().getSystemService(Activity.ACTIVITY_SERVICE);</span><br><span class="line">		<span class="comment">//获得系统可用内存，保存在MemoryInfo对象上</span></span><br><span class="line">		myActivityManager.getMemoryInfo(memoryInfo);</span><br><span class="line">		usefulMemorySize = memoryInfo.availMem / <span class="number">1024</span> /<span class="number">1024</span>;</span><br><span class="line">		<span class="comment">//totalMemorySize = memoryInfo.totalMem;</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里的一个小问题是，memoryInfo.totalMem添加之后，Eclipse并没有在该语句周围报错，但却在整个.java文件中报错。查询andriod API发现totalMen成员变量是在API 16之后加入的，但是我这里target API也是大于16的。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/11/获取Android手机内测CPU等信息/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">Next<span></span></a>
@@ -438,7 +437,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>4</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>3</sup></a></li>
 		  
 		
 		</ul>
@@ -451,7 +450,7 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>10</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>9</sup></a></li>
 			
 		
 			
@@ -459,11 +458,11 @@
 			
 		
 			
-				<li><a href="/tags/Debug/" title="Debug">Debug<sup>4</sup></a></li>
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>2</sup></a></li>
+				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>1</sup></a></li>
 			
 		
 		</ul>
