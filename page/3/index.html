@@ -81,6 +81,77 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/05/11/获取Android手机内测CPU等信息/" title="获取Android手机内测CPU等信息" itemprop="url">获取Android手机内测CPU等信息</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-11T14:36:43.000Z" itemprop="datePublished"> 发表于 2015-05-11</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>出于毕设客户端的开发需要，想要收集Android设备的内存、CPU、存储和电量信息，通过查找现在这四个信息的获取代码如下：</p>
+<h1 id="电量信息">电量信息</h1><p>通过广播实现，系统在电池电量信息发送变化时，回向外发送广播。只要注册一个监听Intent.ACTION_BATTERY_CHANGED的广播接收器并声明权限即可。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">batteryLevel</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">		BroadcastReceiver batteryLevelReceiver = <span class="keyword">new</span> BroadcastReceiver() &#123;  </span><br><span class="line">			<span class="keyword">int</span> scale = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> level = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> voltage = -<span class="number">1</span>;</span><br><span class="line">	        <span class="keyword">int</span> temperature = -<span class="number">1</span>;</span><br><span class="line">	        <span class="annotation">@Override</span></span><br><span class="line">	        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">	            level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -<span class="number">1</span>);</span><br><span class="line">	            scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -<span class="number">1</span>);</span><br><span class="line">	            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -<span class="number">1</span>);</span><br><span class="line">	            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -<span class="number">1</span>);</span><br><span class="line">	            Log.i(<span class="string">"BatteryManager"</span>, <span class="string">"level is "</span>+level+<span class="string">"/"</span>+scale+<span class="string">", temp is "</span>+ temperature +<span class="string">", voltage is "</span>+voltage);</span><br><span class="line">	        &#125;</span><br><span class="line">	    &#125;;</span><br><span class="line">	    IntentFilter filter = <span class="keyword">new</span> IntentFilter(Intent.ACTION_BATTERY_CHANGED);</span><br><span class="line">	    MyApplication.getContext().registerReceiver(batteryLevelReceiver, filter);</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里要注意的是在广播接收器BroadcastReceiver的onReceiver方法中的语句只会在接受到系统广播之后才能得到执行，若果刚刚注册这个广播监听器接着就是获取系统电量，那么一定会遇到得到的电量为0等问题，可以参见stackoverflow上<a href="http://stackoverflow.com/questions/23290955/getting-battery-level-on-android/30210804#30210804" target="_blank" rel="external">这个问题</a>。解决方法应该是先注册广播接收器，一段时间后在获取电量信息。</p>
+<h1 id="CPU使用率">CPU使用率</h1><p>主要是借助top命令，这里我只需要用户的cup使用率和系统cup使用率两个参数即可，所以只需输出的第一行如下<br><code>User 7%, System 8%, IOW 0%, IRQ 0%</code><br>实现的代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CpuUsage</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		String topresult;</span><br><span class="line">		Process process = Runtime.getRuntime().exec(<span class="string">"top -n 1"</span>);</span><br><span class="line"></span><br><span class="line">		BufferedReader br=<span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">		<span class="keyword">while</span>((topresult = br.readLine())!=<span class="keyword">null</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(topresult.trim().length()&lt;<span class="number">1</span>)&#123;</span><br><span class="line">				<span class="keyword">continue</span>;</span><br><span class="line">			&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">				Log.i(<span class="string">"CpuUsage"</span>, topresult);</span><br><span class="line">				String[] cpuInfoStrings = topresult.split(<span class="string">","</span>);</span><br><span class="line">				cpuInfo = <span class="keyword">new</span> HashMap&lt;String,Integer&gt;();</span><br><span class="line">				cpuInfo.put(<span class="string">"Users"</span>,findNumInString(cpuInfoStrings[<span class="number">0</span>]));</span><br><span class="line">				cpuInfo.put(<span class="string">"sys"</span>, findNumInString(cpuInfoStrings[<span class="number">1</span>]));</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">findNumInString</span><span class="params">(String cpuInfoString)</span></span>&#123;</span><br><span class="line">		<span class="keyword">int</span> percent;</span><br><span class="line">		Pattern pattern = Pattern.compile(<span class="string">"\\w*\\s(\\d*)\\%"</span>); </span><br><span class="line">		Matcher matcher = pattern.matcher(cpuInfoString);</span><br><span class="line">		<span class="keyword">if</span> (matcher.find()) &#123;</span><br><span class="line">			String temp = matcher.group(<span class="number">1</span>);</span><br><span class="line">			percent = Integer.parseInt(temp);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			percent = -<span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> percent;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="存储信息">存储信息</h1><p>存储信息分为SD卡和系统自身的，手机自身除了系统之外的存储空间被称为ExternalStorage，这里要注意这不是值自己的插入的TF卡</p>
+<h2 id="SD卡信息">SD卡信息</h2><p>下面是获取SD卡存储空间的代码，主要是获取块数量和每块的大小<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">SDCardSize</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">		String state = Environment.getExternalStorageState();  </span><br><span class="line">		<span class="keyword">if</span> (Environment.MEDIA_MOUNTED.equals(state)) &#123;  </span><br><span class="line">			File sdcardDir = Environment.getExternalStorageDirectory();  </span><br><span class="line">			StatFs sf = <span class="keyword">new</span>  StatFs(sdcardDir.getPath());  </span><br><span class="line">			<span class="keyword">long</span>  blockSize = sf.getBlockSize();  </span><br><span class="line">			<span class="keyword">long</span>  blockCount = sf.getBlockCount();  </span><br><span class="line">			<span class="keyword">long</span>  availCount = sf.getAvailableBlocks();  </span><br><span class="line">			Log.d(<span class="string">""</span> ,  <span class="string">"block大小:"</span> + blockSize+ <span class="string">",block数目:"</span> + blockCount+ <span class="string">",总大小:"</span> +blockSize*blockCount/ <span class="number">1024</span> /<span class="number">1024</span>+ <span class="string">"MB"</span> ); </span><br><span class="line">			totalSizeInSd = blockSize*blockCount/ <span class="number">1024</span> /<span class="number">1024</span>;</span><br><span class="line">			Log.d(<span class="string">""</span> ,  <span class="string">"可用的block数目：:"</span> + availCount+ <span class="string">",剩余空间:"</span> + availCount*blockSize/ <span class="number">1024</span> /<span class="number">1024</span>+ <span class="string">"MB"</span> );</span><br><span class="line">			usefulSizeInSd = availCount*blockSize/ <span class="number">1024</span> / <span class="number">1024</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			totalSizeInSd = <span class="number">0L</span>;</span><br><span class="line">			usefulSizeInSd = <span class="number">0L</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="内部存储信息">内部存储信息</h2><p>原理很SD卡一样，都是根据块数量和每块的大小<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">internalStorageSize</span><span class="params">()</span></span>&#123;</span><br><span class="line">		File root = Environment.getRootDirectory();  </span><br><span class="line">		StatFs sf = <span class="keyword">new</span> StatFs(root.getPath());  </span><br><span class="line">		<span class="keyword">long</span> blockSize = sf.getBlockSize();  </span><br><span class="line">		<span class="keyword">long</span> blockCount = sf.getBlockCount();  </span><br><span class="line">		<span class="keyword">long</span> availCount = sf.getAvailableBlocks();  </span><br><span class="line">		Log.d(<span class="string">""</span>, <span class="string">"block大小:"</span>+ blockSize+<span class="string">",block数目:"</span>+ blockCount+<span class="string">",总大小:"</span>+blockSize*blockCount/<span class="number">1024</span>+<span class="string">"MB"</span>); </span><br><span class="line">		totalSizeInternal = blockSize*blockCount/<span class="number">1024</span>/<span class="number">1024</span>;</span><br><span class="line">		Log.d(<span class="string">""</span>, <span class="string">"可用的block数目：:"</span>+ availCount+<span class="string">",可用大小:"</span>+ availCount*blockSize/<span class="number">1024</span>+<span class="string">"MB"</span>); </span><br><span class="line">		usefulSizeInternal = availCount*blockSize/<span class="number">1024</span>/<span class="number">1024</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="内存信息">内存信息</h1><p>内存主要是通过获取系统活动管理器对象（ActivityManager）和ActivityManager.MemoryInfo对象，调用ActivityManager对象的getMemoryInfo方法，将Android内存信息保存在在ActivityManager.MemoryInfo对象对象中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">memoryInfo</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="comment">//获得MemoryInfo对象</span></span><br><span class="line">		ActivityManager.MemoryInfo memoryInfo = <span class="keyword">new</span> ActivityManager.MemoryInfo();</span><br><span class="line">		<span class="comment">//获取系统服务信息</span></span><br><span class="line">		ActivityManager myActivityManager = (ActivityManager)MyApplication.getContext().getSystemService(Activity.ACTIVITY_SERVICE);</span><br><span class="line">		<span class="comment">//获得系统可用内存，保存在MemoryInfo对象上</span></span><br><span class="line">		myActivityManager.getMemoryInfo(memoryInfo);</span><br><span class="line">		usefulMemorySize = memoryInfo.availMem / <span class="number">1024</span> /<span class="number">1024</span>;</span><br><span class="line">		<span class="comment">//totalMemorySize = memoryInfo.totalMem;</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里的一个小问题是，memoryInfo.totalMem添加之后，Eclipse并没有在该语句周围报错，但却在整个.java文件中报错。查询andriod API发现totalMen成员变量是在API 16之后加入的，但是我这里target API也是大于16的。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/11/获取Android手机内测CPU等信息/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github" itemprop="url">How to deploy blog on github</a>
   </h1>
   <p class="article-author">By
@@ -225,7 +296,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>3</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>4</sup></a></li>
 		  
 		
 		</ul>
@@ -238,7 +309,7 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>9</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>10</sup></a></li>
 			
 		
 			
@@ -246,11 +317,11 @@
 			
 		
 			
-				<li><a href="/tags/Debug/" title="Debug">Debug<sup>3</sup></a></li>
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>4</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>1</sup></a></li>
+				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>2</sup></a></li>
 			
 		
 		</ul>
