@@ -1,0 +1,444 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>阿里云实现listBucket--开发笔记 | More Than Words</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Siyu Jin">
+    
+
+    
+    <meta name="description" content="背景开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。
+通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行GetService">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阿里云实现listBucket--开发笔记">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/index.html">
+<meta property="og:site_name" content="More Than Words">
+<meta property="og:description" content="背景开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。
+通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行GetService">
+<meta property="og:image" content="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E9%98%BF%E9%87%8C%E4%BA%91androidAPI%E6%88%AA%E5%9B%BE.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="阿里云实现listBucket--开发笔记">
+<meta name="twitter:description" content="背景开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。
+通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行GetService">
+
+    
+    <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="More Than Words" title="More Than Words"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="More Than Words">More Than Words</a></h1>
+				<h2 class="blog-motto">Perfection is not attainable, but if we chase it we can catch excellence.</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:njuptjsy.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="new" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/" title="阿里云实现listBucket--开发笔记" itemprop="url">阿里云实现listBucket--开发笔记</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#背景"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#问题描述"><span class="toc-number">2.</span> <span class="toc-text">问题描述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结下"><span class="toc-number">3.</span> <span class="toc-text">总结下</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="背景">背景</h1><p>开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。</p>
+<p>通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/service&amp;GetService" target="_blank" rel="external">GetService操作</a>需要构造一个格式如下的Http请求报文<br><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">oss.aliyuncs.com</span></span><br><span class="line"><span class="attribute">Date</span>: <span class="string">GMT Date</span></span><br><span class="line"><span class="attribute">Authorization</span>: <span class="string">SignatureValue</span></span><br></pre></td></tr></table></figure></p>
+<p>其他的都不难理解，就唯独其中的签名Authorization: SignatureValue的生成让人费解，光是看阿里云提供的<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/access-control&amp;signature-header" target="_blank" rel="external">签名生成方法</a>就花了很大精力。<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"Authorization: OSS "</span> + Access Key Id + <span class="string">":"</span> + Signature</span><br><span class="line"></span><br><span class="line">Signature = base64<span class="list">(<span class="keyword">hmac-sha1</span><span class="list">(<span class="keyword">AccessKeySecret</span>,</span><br><span class="line">            VERB + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-MD5 + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-TYPE + <span class="string">"\n"</span> </span><br><span class="line">            + DATE + <span class="string">"\n"</span> </span><br><span class="line">            + CanonicalizedOSSHeaders</span><br><span class="line">            + CanonicalizedResource)</span>)</span></span><br></pre></td></tr></table></figure></p>
+<p>花了很长时间研究CONTENT-MD5、CONTENT-TYPE到底是什么，还有给出的例子中明明是先用RFC 2104中定义的HMAC-SHA1方法以Access Key Secret为密钥加密然后再BASE64编码成字符串就可以了，但在下面的Python实现中还用到digest方法计算加密后数据的MD5，到底那个是正确的让人很迷惑。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> hmac</span><br><span class="line"><span class="keyword">import</span> sha</span><br><span class="line">h = hmac.new(<span class="string">"OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV"</span>,</span><br><span class="line">             <span class="string">"PUT\nODBGOERFMDMzQTczRUY3NUE3NzA5QzdFNUYzMDQxNEM=\ntext/html\nThu, 17 Nov 2005 18:49:58 GMT\nx-oss-magic:abracadabra\nx-oss-meta-author:foo@bar.com\n/oss-example/nelson"</span>, sha)</span><br><span class="line">base64.encodestring(h.digest()).strip()</span><br></pre></td></tr></table></figure></p>
+<h1 id="问题描述">问题描述</h1><p>综上所述，在花了很长时间理解阿里云的文档之后，开始实现getService服务。第一步,需要通过HttpClient构建一个HttpGet消息。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpClient = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">String host = <span class="string">"oss.aliyuncs.com"</span>;</span><br><span class="line"></span><br><span class="line">URI url = URIUtils.createURI(<span class="string">"http"</span>, host, -<span class="number">1</span>, <span class="string">"/"</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);<span class="comment">//ublic static URI createURI(String scheme,String host,int port,String path,String query,String fragment)</span></span><br><span class="line">LogUtil.i(<span class="string">"QueryAliyun:sendHttpGet"</span>, url+<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">HttpGet httpGet = <span class="keyword">new</span> HttpGet(url);</span><br><span class="line">httpGet.addHeader(<span class="string">"Date"</span>, getSystemTime());</span><br><span class="line">httpGet.addHeader(<span class="string">"Host"</span>,<span class="string">"oss.aliyuncs.com"</span>);</span><br><span class="line">httpGet.addHeader(<span class="string">"Authorization"</span>, getSignature());</span><br></pre></td></tr></table></figure></p>
+<p>第二步，需要按照文档中描述的方式对本次请求进行加密。问题就出现在这一步<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getSignature</span><span class="params">()</span></span>&#123;</span><br><span class="line">		String encryptText = <span class="string">"GET"</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + getSystemTime() + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span></span><br><span class="line">	            + <span class="string">"/"</span>;</span><br><span class="line">		</span><br><span class="line">		String signature = <span class="string">""</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			String signatureTemp = ClientUtils.HmacSHA1Encrypt(InfoContainer.ALIYUN_SCRECT_ID, encryptText);</span><br><span class="line">       </span><br><span class="line">			signature = Base64.encodeToString(signatureTemp.getByte(), Base64.DEFAULT).trim();</span><br><span class="line">			</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			LogUtil.e(<span class="string">"QueryAliyun:getSignature"</span>, <span class="string">" catch exception in HmacSHA1Encrypt"</span>);</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">		String authorization = <span class="string">"OSS "</span> + InfoContainer.ALIYUN_ACCESS_ID + <span class="string">":"</span> + signature;</span><br><span class="line">		<span class="keyword">return</span> authorization;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我将要加密的文本按照指定的算法进行加密，返回加密结果字符串，再使用BASE64方式编码，与服务器通信后始终是403错误。研究了很久，发现使用阿里云提供的方法对同样的内容进行签名操作就可以通信，于是我将该方法的结果进行BASE64解码，发现解码的结果和使用ClientUtils.HmacSHA1Encrypt方法放回的字符串一样。根据这个结论进一步研究猜测问题出现在signatureTemp.getByte()这个方法上，我将加密的结果作为byte[]返回，而不是先转换成字符串在装换成byte数组，再进行BASE64编码就可以正常通信了。</p>
+<p>这让我怀疑通过new String()得到的字符串，再进行getByte[]操作无法得到原有的byte数组。因为new String和getByte方法在不指定编码方式的情况下都是使用当前环境的编码方式，这里是UTF-8，于是我使用了下面的方法进行测试<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">testGetbyte</span><span class="params">(<span class="keyword">byte</span>[] signatureTemp)</span> </span>&#123;</span><br><span class="line">		String testString;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			testString = <span class="keyword">new</span> String(signatureTemp,<span class="string">"UTF-8"</span>);</span><br><span class="line">			<span class="keyword">byte</span>[] testBytes = testString.getBytes(<span class="string">"UTF-8"</span>);</span><br><span class="line">			LogUtil.i(<span class="string">"QueryAliyun:testGetbyte"</span>, signatureTemp + <span class="string">" and "</span> + testBytes);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>发现在utf-8的编码规则下，将byte数组装换成字符串在将字符串转换成byte数组，源数组不等于操作过后的数组。进一步研究，发现原因是因为UTF-8编码方式并不是采用单字节的编码方式进行转换，如果将这里的编码方式改成ISO-8859-1，源数组就和操作后的得到的数组一致了。这个坑也是导致我在这个地方花费了很长时间。</p>
+<p>第三步，解析返回的数据</p>
+<h1 id="总结下">总结下</h1><p>这里虽然ISO-8859-1来编码可以解码出原来的byte数组，但是使用不管什么内容，都用new String(…,”ISO-8859-1”)来建立字符串，然后使用的时候按默认的编码格式（通常在服务器上都是英文系统）输出字符串。这样其实你使用的String并不是按UNICODE来代表真正的字符，而是强行把BYTE数组复制到String的char[]里，一旦你的运行环境改变，你就被迫要修改一大堆的代码。而且也无法在同一个字符串里处理几种不同编码的文字。<br>另一个是把一种编码格式的字符串，比如是GB2312，转换成另一种格式的字符串，比如UTF-8，然后不指明是UTF-8编码，而直接用new String(…)来建立String，这样放在String里面的字符也是无法确定的，它在不同的系统上代表不同的字符。如果要求别人用“UTF-8格式”的String来交换信息的时候，其实已经破坏了JAVA为了兼容各种语言所做的规定。这种错误的本质思想是还按写C语言的方式，把字符串纯粹当作可以自己自由编码的存储器使用，而忽略了JAVA字符串只有一种编码格式。如果真的想自由编码，用byte[]或者char[]就完全了解决问题的了。 </p>
+<p>这里不得不吐槽下阿里云的Android API,对各项操作的封装不全也就算了，文档中几乎没有说明性的描述，绝大部分函数都没有任何的说明的文字，传入的形参和返回值也只告诉你类型，使用基本靠猜。即使对自己的命名再有信心，几句说明还是应该有的，具体可以看看AWS的API。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E9%98%BF%E9%87%8C%E4%BA%91androidAPI%E6%88%AA%E5%9B%BE.png" alt="image"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Work/">Work</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/CloudClient/">CloudClient</a><a href="/tags/Debug/">Debug</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://njuptjsy.github.io/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/" data-title="阿里云实现listBucket--开发笔记 | More Than Words" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/06/08/阿里云实现listBucket-开发笔记/"  title="阿里云实现listBucket--开发笔记">
+ <strong>下一篇：</strong><br/> 
+ <span>阿里云实现listBucket--开发笔记
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+<section id="comments" class="comment">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Android/" title="Android">Android<sup>9</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Work/" title="Work">Work<sup>4</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>12</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Skills/" title="Skills">Skills<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>2</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://github.com/njuptjsy" target="_blank" title="不积跬步无以至千里">我的github</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.njupt.edu.cn" target="_blank" title="南邮">南邮</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Siyu Jin in Github. <br/>
+			This is my blog,welcome.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Siyu Jin">Siyu Jin</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+
+<script type="text/javascript">
+
+var disqus_shortname = 'guest';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

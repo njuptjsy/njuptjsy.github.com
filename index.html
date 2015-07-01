@@ -81,6 +81,80 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/" title="阿里云实现listBucket--开发笔记" itemprop="url">阿里云实现listBucket--开发笔记</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="背景">背景</h1><p>开发CloudClient的阿里云上传下载模块，本来以为可以愉快的使用阿里云的各种封装好的API,没想到刚刚开始开发下载文件就遇到了问题。阿里云并没有提供具体的根据用户名密码列举该用户名下所有Bucket的方法。</p>
+<p>通过阅读其官网描述的API,发现可以基于RESTful的架构自己向阿里云服务器发送请求，从响应消息中解析所需要的信息。列举所以用户名下所有Bucket的方式是进行<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/service&amp;GetService" target="_blank" rel="external">GetService操作</a>需要构造一个格式如下的Http请求报文<br><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">oss.aliyuncs.com</span></span><br><span class="line"><span class="attribute">Date</span>: <span class="string">GMT Date</span></span><br><span class="line"><span class="attribute">Authorization</span>: <span class="string">SignatureValue</span></span><br></pre></td></tr></table></figure></p>
+<p>其他的都不难理解，就唯独其中的签名Authorization: SignatureValue的生成让人费解，光是看阿里云提供的<a href="http://docs.aliyun.com/?spm=5176.383663.9.2.52hqzx#/pub/oss/api-reference/access-control&amp;signature-header" target="_blank" rel="external">签名生成方法</a>就花了很大精力。<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"Authorization: OSS "</span> + Access Key Id + <span class="string">":"</span> + Signature</span><br><span class="line"></span><br><span class="line">Signature = base64<span class="list">(<span class="keyword">hmac-sha1</span><span class="list">(<span class="keyword">AccessKeySecret</span>,</span><br><span class="line">            VERB + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-MD5 + <span class="string">"\n"</span> </span><br><span class="line">            + CONTENT-TYPE + <span class="string">"\n"</span> </span><br><span class="line">            + DATE + <span class="string">"\n"</span> </span><br><span class="line">            + CanonicalizedOSSHeaders</span><br><span class="line">            + CanonicalizedResource)</span>)</span></span><br></pre></td></tr></table></figure></p>
+<p>花了很长时间研究CONTENT-MD5、CONTENT-TYPE到底是什么，还有给出的例子中明明是先用RFC 2104中定义的HMAC-SHA1方法以Access Key Secret为密钥加密然后再BASE64编码成字符串就可以了，但在下面的Python实现中还用到digest方法计算加密后数据的MD5，到底那个是正确的让人很迷惑。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> hmac</span><br><span class="line"><span class="keyword">import</span> sha</span><br><span class="line">h = hmac.new(<span class="string">"OtxrzxIsfpFjA7SwPzILwy8Bw21TLhquhboDYROV"</span>,</span><br><span class="line">             <span class="string">"PUT\nODBGOERFMDMzQTczRUY3NUE3NzA5QzdFNUYzMDQxNEM=\ntext/html\nThu, 17 Nov 2005 18:49:58 GMT\nx-oss-magic:abracadabra\nx-oss-meta-author:foo@bar.com\n/oss-example/nelson"</span>, sha)</span><br><span class="line">base64.encodestring(h.digest()).strip()</span><br></pre></td></tr></table></figure></p>
+<h1 id="问题描述">问题描述</h1><p>综上所述，在花了很长时间理解阿里云的文档之后，开始实现getService服务。第一步,需要通过HttpClient构建一个HttpGet消息。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpClient = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">String host = <span class="string">"oss.aliyuncs.com"</span>;</span><br><span class="line"></span><br><span class="line">URI url = URIUtils.createURI(<span class="string">"http"</span>, host, -<span class="number">1</span>, <span class="string">"/"</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);<span class="comment">//ublic static URI createURI(String scheme,String host,int port,String path,String query,String fragment)</span></span><br><span class="line">LogUtil.i(<span class="string">"QueryAliyun:sendHttpGet"</span>, url+<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">HttpGet httpGet = <span class="keyword">new</span> HttpGet(url);</span><br><span class="line">httpGet.addHeader(<span class="string">"Date"</span>, getSystemTime());</span><br><span class="line">httpGet.addHeader(<span class="string">"Host"</span>,<span class="string">"oss.aliyuncs.com"</span>);</span><br><span class="line">httpGet.addHeader(<span class="string">"Authorization"</span>, getSignature());</span><br></pre></td></tr></table></figure></p>
+<p>第二步，需要按照文档中描述的方式对本次请求进行加密。问题就出现在这一步<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getSignature</span><span class="params">()</span></span>&#123;</span><br><span class="line">		String encryptText = <span class="string">"GET"</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span> + <span class="string">"\n"</span> </span><br><span class="line">	            + getSystemTime() + <span class="string">"\n"</span> </span><br><span class="line">	            + <span class="string">""</span></span><br><span class="line">	            + <span class="string">"/"</span>;</span><br><span class="line">		</span><br><span class="line">		String signature = <span class="string">""</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			String signatureTemp = ClientUtils.HmacSHA1Encrypt(InfoContainer.ALIYUN_SCRECT_ID, encryptText);</span><br><span class="line">       </span><br><span class="line">			signature = Base64.encodeToString(signatureTemp.getByte(), Base64.DEFAULT).trim();</span><br><span class="line">			</span><br><span class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			LogUtil.e(<span class="string">"QueryAliyun:getSignature"</span>, <span class="string">" catch exception in HmacSHA1Encrypt"</span>);</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">		String authorization = <span class="string">"OSS "</span> + InfoContainer.ALIYUN_ACCESS_ID + <span class="string">":"</span> + signature;</span><br><span class="line">		<span class="keyword">return</span> authorization;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我将要加密的文本按照指定的算法进行加密，返回加密结果字符串，再使用BASE64方式编码，与服务器通信后始终是403错误。研究了很久，发现使用阿里云提供的方法对同样的内容进行签名操作就可以通信，于是我将该方法的结果进行BASE64解码，发现解码的结果和使用ClientUtils.HmacSHA1Encrypt方法放回的字符串一样。根据这个结论进一步研究猜测问题出现在signatureTemp.getByte()这个方法上，我将加密的结果作为byte[]返回，而不是先转换成字符串在装换成byte数组，再进行BASE64编码就可以正常通信了。</p>
+<p>这让我怀疑通过new String()得到的字符串，再进行getByte[]操作无法得到原有的byte数组。因为new String和getByte方法在不指定编码方式的情况下都是使用当前环境的编码方式，这里是UTF-8，于是我使用了下面的方法进行测试<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">testGetbyte</span><span class="params">(<span class="keyword">byte</span>[] signatureTemp)</span> </span>&#123;</span><br><span class="line">		String testString;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			testString = <span class="keyword">new</span> String(signatureTemp,<span class="string">"UTF-8"</span>);</span><br><span class="line">			<span class="keyword">byte</span>[] testBytes = testString.getBytes(<span class="string">"UTF-8"</span>);</span><br><span class="line">			LogUtil.i(<span class="string">"QueryAliyun:testGetbyte"</span>, signatureTemp + <span class="string">" and "</span> + testBytes);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>发现在utf-8的编码规则下，将byte数组装换成字符串在将字符串转换成byte数组，源数组不等于操作过后的数组。进一步研究，发现原因是因为UTF-8编码方式并不是采用单字节的编码方式进行转换，如果将这里的编码方式改成ISO-8859-1，源数组就和操作后的得到的数组一致了。这个坑也是导致我在这个地方花费了很长时间。</p>
+<p>第三步，解析返回的数据</p>
+<h1 id="总结下">总结下</h1><p>这里虽然ISO-8859-1来编码可以解码出原来的byte数组，但是使用不管什么内容，都用new String(…,”ISO-8859-1”)来建立字符串，然后使用的时候按默认的编码格式（通常在服务器上都是英文系统）输出字符串。这样其实你使用的String并不是按UNICODE来代表真正的字符，而是强行把BYTE数组复制到String的char[]里，一旦你的运行环境改变，你就被迫要修改一大堆的代码。而且也无法在同一个字符串里处理几种不同编码的文字。<br>另一个是把一种编码格式的字符串，比如是GB2312，转换成另一种格式的字符串，比如UTF-8，然后不指明是UTF-8编码，而直接用new String(…)来建立String，这样放在String里面的字符也是无法确定的，它在不同的系统上代表不同的字符。如果要求别人用“UTF-8格式”的String来交换信息的时候，其实已经破坏了JAVA为了兼容各种语言所做的规定。这种错误的本质思想是还按写C语言的方式，把字符串纯粹当作可以自己自由编码的存储器使用，而忽略了JAVA字符串只有一种编码格式。如果真的想自由编码，用byte[]或者char[]就完全了解决问题的了。 </p>
+<p>这里不得不吐槽下阿里云的Android API,对各项操作的封装不全也就算了，文档中几乎没有说明性的描述，绝大部分函数都没有任何的说明的文字，传入的形参和返回值也只告诉你类型，使用基本靠猜。即使对自己的命名再有信心，几句说明还是应该有的，具体可以看看AWS的API。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E9%98%BF%E9%87%8C%E4%BA%91androidAPI%E6%88%AA%E5%9B%BE.png" alt="image"></p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Work/">Work</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/CloudClient/">CloudClient</a><a href="/tags/Debug/">Debug</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/06/08/根据byte[]生成String和getByte遇到的问题-开发笔记/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand new" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/06/08/阿里云实现listBucket-开发笔记/" title="阿里云实现listBucket--开发笔记" itemprop="url">阿里云实现listBucket--开发笔记</a>
   </h1>
   <p class="article-author">By
@@ -142,6 +216,135 @@
 	
 	  	<span></span>
 		<a href="/2015/06/08/阿里云实现listBucket-开发笔记/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand new" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/08/MVC模式/" title="MVC模式" itemprop="url">MVC模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="基本概念">基本概念</h1><p>MVC的主要作用是将应用程序的数据和界面分离，其中M表示Model代表模型，V表示view代表界面，C表示控制器控制M和V之间的联系。Android SDK也采用MVC。<br>当View数据变化时，其通知Controller，由Controller操作Model进行相应的数据操作。将数据和视图分离之后跟换视图和模型是可以不影响对方，更利于程序维护。Android中典型的例子就是各种列表组件作为View（ListView、GridView、Spinner等），各种适配器作为Controller（BaseAdapter、SimpleAdapter、ArrayAdapter、SimpleCousorAdaptr和CousorAdaptr），对于的Model有数组和Cursor等。当Model变化时，调用notifyDataSetChanged方法通知C，C通过getView重新绘制组件内容。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/06/08/MVC模式/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand new" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/08/Android系统架构/" title="MVC模式" itemprop="url">MVC模式</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/Android%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84.jpg" alt="image"><br>如图所示主要分4层<br>1.运行在Dalvik虚拟机（基于寄存器的java虚拟机，运行速度更快）上的系统应用。</p>
+<p>2.应用框架层（framework）：包括客户端和服务端<br>其中，服务端主要组件有：<br>WmS(管理Window大小调节叠放层次、隐藏或显示)<br>AmS（管理Activity并负责与应用程序主进程ActivityThread进行通信）<br>WmS.KeyQ（读取用户的操作，存放在消息队列QueueEvent中）<br>InputDispatchThread（取出QueueEvent中的消息，分发给应用）<br>客户端组件有：<br>ActivityThread：主线程UI线程，一个应用一个，入口是static main<br>Activity：应用运行的最小单元，一个应用多个<br>Window：提供通用窗口操作API<br>PhoneWindow：继承window类，对FrameLayout进行包装并提供操作API<br>PhoneWindow.DecorVeiw:对普通FrameLayout进行修饰相应特定按键消息<br>ViewRoot：继承Handler，接收WmS的通知<br>ViewRoot.V:继承Binder，向WmS提供IPC接口<br>WindowManage：客户端和WmS之间的代理</p>
+<p>3.系统运行库：NDK使用C\C++编写主要是.so文件。主要包括C标准库、OpenGL ES、SQLit、Webkit和Dalvik虚拟机等。</p>
+<p>4.linux内核层，包括驱动、内存管理、进程管理、网络协议栈等。</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/06/08/Android系统架构/#disqus_thread" class="comments-count-link">Comments</a>
 	
 </div>
 
@@ -229,222 +432,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/25/Android开发技巧-广播/" title="Android开发技巧--广播" itemprop="url">Android开发技巧--广播</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-25T15:32:15.000Z" itemprop="datePublished"> 发表于 2015-05-25</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="概念总结">概念总结</h1><p>Android中的广播分成标准广播（Normal broadcasts一直完全异步执行的广播所有接收器同时受到这个广播，没有先后顺序）和有序广播（Ordered broadcasts广播接收器按照优先级依次接收广播，优先级高的广播可以截断广播）。</p>
-<h1 id="广播接收器">广播接收器</h1><p>广播接收类必须继承自BroadcastReceiver，并重写父类的onReceive()方法定义接收到广播之后的操作。<br>广播接收器有两种注册方式，在代码中动态的注册和在AndroidManifest.xml 中静态的注册。<br>下面是动态注册的基本例子，首先声明一个类继承制BroadcastReceiver，并复写其中的onReceive()方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NetworkChangeReceiver</span> <span class="keyword">extends</span> <span class="title">BroadcastReceiver</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">		Toast.makeText(context, <span class="string">"network changes"</span>,</span><br><span class="line">		Toast.LENGTH_SHORT).show();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>接着在注册这个接收器的时候，首先通过IntentFilter定义需要接受的动作，新建这个广播接收器对象并将其注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">intentFilter = <span class="keyword">new</span> IntentFilter();</span><br><span class="line">intentFilter.addAction(<span class="string">"android.net.conn.CONNECTIVITY_CHANGE"</span>);</span><br><span class="line">networkChangeReceiver = <span class="keyword">new</span> NetworkChangeReceiver();</span><br><span class="line">registerReceiver(networkChangeReceiver, intentFilter);</span><br></pre></td></tr></table></figure></p>
-<p>最后在不需要这个广播接收器时，需要将其取消注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unregisterReceiver(networkChangeReceiver);</span><br></pre></td></tr></table></figure></p>
-<p>下面是静态的注册广播接收器，非常简单，只需要在AndroidManifest.xml中声明一个接收器，给出其类名，以及需要接收的Intent<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootCompleteReceiver"</span> &gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span> /&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h1 id="发送广播">发送广播</h1><h2 id="标准广播">标准广播</h2><p>发送标准广播，只要在Intent对象中填入所需的广播名，在调用sendBroadcast()发送这个广播即可<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
-<h2 id="有序广播">有序广播</h2><p>和标准广播的区别就是发送广播时使用sendOrderedBroadcast()方法发送有序广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.MY_BROADCAST"</span>);</span><br><span class="line">sendOrderedBroadcast(intent, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure></p>
-<p>其中第一个参数是Intent，第二个参数表示权限，在注册广播接收器的时候，可以通过android:priority 属性给广播接收器设置优先级<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;receiver android:name=".MyBroadcastReceiver"&gt;</span><br><span class="line">	&lt;intent-filter android:priority="100" &gt;</span><br><span class="line">		&lt;action android:name="com.example.broadcasttest.MY_BROADCAST"/&gt;</span><br><span class="line">	&lt;/intent-filter&gt;</span><br><span class="line">&lt;/receiver&gt;</span><br></pre></td></tr></table></figure></p>
-<p>在接收到广播之后，可以在广播接收器中的onReceive()方法中使用abortBroadcast()方法将宝宝截断，后面优先级低于100的广播接收器就收不到该广播了。</p>
-<h1 id="本地广播">本地广播</h1><p>前面所说的广播都是属于系统广播，可以被其他程序截获，为了数据的安全性Android还有一套本地广播机制，即<em>的广播只能够在应用程序的内部进行传递，并且广播接收器也只能接收来自本应用程序发出的广播</em>。<br>本地广播主要使用LocalBroadcastManager对广播进行管理，首先通过getInstance方法获取LocalBroadcastManager对象实例<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">localBroadcastManager = LocalBroadcastManager.getInstance(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure></p>
-<p>在发送广播的时候，使用LocalBroadcastManager.sendBroadcast方法发送本地广播<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localBroadcastManager.sendBroadcast(intent);</span><br></pre></td></tr></table></figure></p>
-<p>在注册广播接收器时使用localBroadcastManager.registerReceiver方法注册广播接收器，广播接收器中onReceiver和非本地广播一样<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">intentFilter.addAction(<span class="string">"com.example.broadcasttest.LOCAL_BROADCAST"</span>);</span><br><span class="line">localReceiver = <span class="keyword">new</span> LocalReceiver();</span><br><span class="line">localBroadcastManager.registerReceiver(localReceiver, intentFilter);<span class="comment">// 注册本地广播监听器</span></span><br></pre></td></tr></table></figure></p>
-<p>另外，本地广播接收器是无法进行静态注册的，因为静态注册就是为了程序在不运行的状态下也能接受广播，在本地广播的应用场景下不需要。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/25/Android开发技巧-广播/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/24/Android开发技巧-UI/" title="Android开发技巧--UI" itemprop="url">Android开发技巧--UI</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-24T05:20:30.000Z" itemprop="datePublished"> 发表于 2015-05-24</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="自定义的ListView">自定义的ListView</h1><p>移动设备上的UI设计，用的最多的就是listView，从QQ、微信到一些新闻客户端，都是上下标题栏加上中间列表的结构，这样可以充分的利用移动设备并不富裕的空间，高效的显示更多的信息。Android中通过自定义的Adapter可以根据需要对ListView进行定制。<br>假设要在一个ListView中的每个条目展示不同的Fruit的名称和图片，首先新建一个Fruit类表示Fruit对象,其中name成员变量表示水果名，imageId表示对应的Fruit的图片资源id<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Fruit</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> imageId;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Fruit</span><span class="params">(String name, <span class="keyword">int</span> imageId)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.name = name;</span><br><span class="line">		<span class="keyword">this</span>.imageId = imageId;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> name;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getImageId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> imageId;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>接着需要定义一个对应于上面Fruit类的布局文件，作为ListView中每个条目的布局文件。下面就可以定义一个最基本的没有优化的适配器，这里是通过继承指定泛型为Fruit的ArrayAdapter<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FruitAdapter</span> <span class="keyword">extends</span> <span class="title">ArrayAdapter</span>&lt;<span class="title">Fruit</span>&gt; </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> resourceId;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">FruitAdapter</span><span class="params">(Context context, <span class="keyword">int</span> itemViewResourceId,List&lt;Fruit&gt; objects)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>(context, itemViewResourceId, objects);</span><br><span class="line">		resourceId = itemViewResourceId;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">		Fruit fruit = getItem(position); <span class="comment">// 获取当前项的Fruit实例</span></span><br><span class="line">		View view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">		ImageView fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">		TextView fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">		fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">		fruitName.setText(fruit.getName());</span><br><span class="line">		<span class="keyword">return</span> view;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>可以看到，在构造函数中依次传入context对象，每个条目的布局文件的资源id，需要显示的所有Fruit对象组成的List<fruit>列表。其实，实现自定义的适配器最主要的逻辑就在覆盖的getView方法中。这个方法在每个子项被滑动到屏幕内，即该子项将显示的时候被调用。可以看到这该方法中，我们首先调用gitItem方法根据位置position参数得到当前需要操作的fruit对象；接着，利用LayoutInflater来加载前面定义的好的子项布局；下面，通过通过findViewById方法将布局文件中各个组件view获取；最后获取fruit对象的数据，显示在布局文件相应的组件中，并返回这个组件即可。<br>但是，可以观察到大多数自定义的适配器中的getView方法都不是如此简单粗暴。上面的写法每次调用getview方法是都需要加载一次布局文件，这是多余了，完全可以利用convertView参数进行优化<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">	Fruit fruit = getItem(position);</span><br><span class="line">	View view;</span><br><span class="line">	<span class="keyword">if</span> (convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">		view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		view = convertView;</span><br><span class="line">	&#125;</span><br><span class="line">	ImageView fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">	TextView fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">	fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">	fruitName.setText(fruit.getName());</span><br><span class="line">	<span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></fruit></p>
-<p>convertView参数用于将之前加载好的布局进行缓存，所以我们可以在加载布局文件之前进行判断，如果convertView不为空就不要再去利用LayoutInflater去加载布局。这里需要说的就是convertView，Android SDK中这样讲参数 convertview ：<br>the old view to reuse, if possible. Note: You should check that this view is non-null and of an appropriate type before using.<br> If it is not possible to convert this view to display the correct data, this method can create a new view.<br>为了节省内存，不至于让listview中的每个item都驻留在手机的内存中，Android提供了一套Recycler机制，当一个ListView初次新建时，getview中的convertView是null，这时用户开始滚动listview，当其中一个item被滚出屏幕后，android就将其保存在Recycler中而不是内存中。再次调用getview方法时，传入的convertView就是被滚出屏幕的item的布局了，只需要重新设定布局组件的数据即可。</p>
-<p>下面，可以进一步优化，我们发现每次调用getView方法时，都会使用findViewById方法得到布局文件中每一个组件才能为其赋值。这也是十分影响效率的。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">	Fruit fruit = getItem(position);</span><br><span class="line">	View view;</span><br><span class="line">	ViewHolder viewHolder;</span><br><span class="line">	<span class="keyword">if</span> (convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">		view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">		viewHolder = <span class="keyword">new</span> ViewHolder();</span><br><span class="line">		viewHolder.fruitImage = (ImageView) view.findViewById(R.id.fruit_image);</span><br><span class="line">		viewHolder.fruitName = (TextView) view.findViewById(R.id.fruit_name);</span><br><span class="line">		view.setTag(viewHolder); <span class="comment">// 将ViewHolder存储在View中</span></span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		view = convertView;</span><br><span class="line">		viewHolder = (ViewHolder) view.getTag(); <span class="comment">// 重新获取ViewHolder</span></span><br><span class="line">	&#125;</span><br><span class="line">	viewHolder.fruitImage.setImageResource(fruit.getImageId());</span><br><span class="line">	viewHolder.fruitName.setText(fruit.getName());</span><br><span class="line">	<span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> </span>&#123;</span><br><span class="line">	ImageView fruitImage;</span><br><span class="line">	TextView fruitName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>通过定义内部类ViewHolder对布局文件的控件进行缓存，当convertView为空是我们创建一个viewHolder对象，将布局文件的组件都保存在其中。接着调用view的setTag方法将viewHolder对象保存在其中。在convertView不为空时，即可用从Recycler中取出旧的布局文件时，我们在通过view的getTag方法将布局文件的组件取出，以便接下来对其进行赋值。<br>这样，如果convertview是第一次展示我们就创建新的Holder对象与之绑定，并在最后通过return convertview返回，去显示；如果convertview 是回收来的那么我们就不必创建新的holder对象，只需要把原来的绑定的holder取出加上新的数据就行了。</p>
-<h1 id="制作Nine-Patch图片">制作Nine-Patch图片</h1><p>有时候，我们需要制定一张图片那些部分是可以拉伸的，而不希望其均匀的被拉伸。这时候我们就可以利用android sdk中提供的一个工具,首先找到sdk根目录，打开其中的tools文件夹，运行draw9patch.bat,将要编辑的图片加载到其中。接着，在图片的四个边框绘制一个个的小黑点，在<em>上边框和左边框绘制的部分就表示当图片需要拉伸时就拉伸黑点标记的区域</em>，在<em>下边框和右边框绘制的部分则表示内容会被放置的区域</em>。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/9-patch.png" alt="image"></p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/24/Android开发技巧-UI/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/22/Android开发技巧-其它技巧/" title="Android开发技巧--其它技巧" itemprop="url">Android开发技巧--其它技巧</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T15:56:43.000Z" itemprop="datePublished"> 发表于 2015-05-22</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h1 id="1-使用Intent传递对象">1.使用Intent传递对象</h1><p>典型的使用putExtra()以键值对的形式将数据放入Intent对象中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">intent.putExtra(<span class="string">"string_data"</span>, <span class="string">"hello"</span>);</span><br><span class="line">intent.putExtra(<span class="string">"int_data"</span>, <span class="number">100</span>);</span><br></pre></td></tr></table></figure></p>
-<p>在用相应的getXXXExtra()方法将数据取出<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getIntent().getStringExtra(<span class="string">"string_data"</span>);</span><br><span class="line">getIntent().getIntExtra(<span class="string">"int_data"</span>, <span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
-<p>但是getXXXExtra()方法中所支持的数据类型是有限的，比如自定义的对象存储在Intent就无法通过getXXXExtra()方法取出。这个时候就可以使用Serializable或Parcelable方式</p>
-<h2 id="Serializable序列化">Serializable序列化</h2><p>在自定义的类中通过继承Serializable接口就可以将需要序列化的类，进行序列化，对这个类中不需要序列化的成员变量可以使用transient关键字对其进行声明。比如我们将自定义的实现了Serializable接口的类person对象存入Intent中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">intent.putExtra(<span class="string">"person_data"</span>, person);</span><br></pre></td></tr></table></figure></p>
-<p>取出的对象的时候就可以使用如下语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Person person = (Person) getIntent().getSerializableExtra(<span class="string">"person_data"</span>);</span><br></pre></td></tr></table></figure></p>
-<h2 id="Parcelable方式">Parcelable方式</h2><p>Parcelable 方式的实现方式与Serializable方式不同，它是通过将一个完整的对象分解成Intent支持的数据类型。<br>首先让自定义的类实现Parcelale接口，接着复写其中的describeContents()和writeToParcel()两个方法。在其中writeToParcel()方法中调用Parcel<br>对象的writeXxx()方法将自定义类中的成员变量一一写入。<br>最后，新建一个public static final Parcelable.Creator&lt;自定义类&gt; CREATOR常量，实现Parcelable.Creator&lt;自定义类&gt;接口，并将泛型制动成自定义的类，接着复写createFromParcel()和newArray()这两个方法，在createFromParcel()方法去读取刚才写出的自定义的类中成员变量<br>，并利用读取到的成员变量创建一个自定义对象进行返回。注意这里读取的顺序一定要和刚才写出的顺序完全相同。而newArray()方法中的实现就简单多了，只需要new 出一个自定义类数组，并使用方法中传入的size作为数组大小就可以了。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Parcelable</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">	……</span><br><span class="line">	</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">describeContents</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writeToParcel</span><span class="params">(Parcel dest, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">		dest.writeString(name); <span class="comment">// 写出name</span></span><br><span class="line">		dest.writeInt(age); <span class="comment">// 写出age</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Parcelable.Creator&lt;Person&gt; CREATOR = <span class="keyword">new</span> Parcelable.Creator&lt;Person&gt;() &#123;</span><br><span class="line">		<span class="annotation">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> Person <span class="title">createFromParcel</span><span class="params">(Parcel source)</span> </span>&#123;</span><br><span class="line">			Person person = <span class="keyword">new</span> Person();</span><br><span class="line">			person.name = source.readString(); <span class="comment">// 读取name</span></span><br><span class="line">			person.age = source.readInt(); <span class="comment">// 读取age</span></span><br><span class="line">			<span class="keyword">return</span> person;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="annotation">@Override</span></span><br><span class="line">		<span class="keyword">public</span> Person[] newArray(<span class="keyword">int</span> size) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">new</span> Person[size];</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>相应的取出对象时使用语句<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Person person = (Person) getIntent().getParcelableExtra(<span class="string">"person_data"</span>);</span><br></pre></td></tr></table></figure></p>
-<h1 id="2-自定制日志工具">2.自定制日志工具</h1><p>为了在应用上线之后去掉打印日志，或者实现打印自定义级别的日志，如只打印Error级别日志信息，我们可以自定义一个日志类，对日志的信息进行管理。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogUtil</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> VERBOSE = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEBUG = <span class="number">2</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> INFO = <span class="number">3</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> WARN = <span class="number">4</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ERROR = <span class="number">5</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NOTHING = <span class="number">6</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> LEVEL = VERBOSE;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">v</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= VERBOSE) &#123;</span><br><span class="line">			Log.v(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">d</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= DEBUG) &#123;</span><br><span class="line">			Log.d(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">i</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= INFO) &#123;</span><br><span class="line">			Log.i(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">w</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= WARN) &#123;</span><br><span class="line">			Log.w(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">e</span><span class="params">(String tag, String msg)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (LEVEL &lt;= ERROR) &#123;</span><br><span class="line">			Log.e(tag, msg);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>如上所示在LogUtil中可以通过调整Level的大小来自定义的打印的log的基本，Level为1表示打印全部log，为6表示所有级别都不打印，1到6打印的log的重要级别依次上升。</p>
-<h1 id="3-TDD在Android开发中应用">3.TDD在Android开发中应用</h1><p>创建Android Test Project为相应的项目进行测试，生产的测试项目的AndroidManifest.xml文件中会指出该测试的目标项目，通过继承AndroidTestCase就可以编写测试类，在其中编写各种测试方法，具体的使用方法和java中junit的一样，可以看我github上<a href="https://github.com/njuptjsy/AgileJavaNote" target="_blank" rel="external">AgileJavaNote</a>这个项目。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Android/">Android</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/22/Android开发技巧-其它技巧/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
@@ -463,11 +450,11 @@
 		<ul>
 		
 		  
-			<li><a href="/categories/Android/" title="Android">Android<sup>7</sup></a></li>
+			<li><a href="/categories/Android/" title="Android">Android<sup>9</sup></a></li>
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>3</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>4</sup></a></li>
 		  
 		
 		</ul>
@@ -480,7 +467,7 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>9</sup></a></li>
+				<li><a href="/tags/Android-Code/" title="Android Code">Android Code<sup>12</sup></a></li>
 			
 		
 			
@@ -488,11 +475,11 @@
 			
 		
 			
-				<li><a href="/tags/Debug/" title="Debug">Debug<sup>3</sup></a></li>
+				<li><a href="/tags/Debug/" title="Debug">Debug<sup>4</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>1</sup></a></li>
+				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>2</sup></a></li>
 			
 		
 		</ul>

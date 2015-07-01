@@ -4,34 +4,22 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>小站的开篇 | More Than Words</title>
+    <title>MVC模式 | More Than Words</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Siyu Jin">
     
 
     
-    <meta name="description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+    <meta name="description" content="基本概念MVC的主要作用是将应用程序的数据和界面分离，其中M表示Model代表模型，V表示view代表界面，C表示控制器控制M和V之间的联系。Android SDK也采用MVC。当View数据变化时，其通知Controller，由Controller操作Model进行相应的数据操作。将数据和视图分离之后跟换视图和模型是可以不影响对方，更利于程序维护。Android中典型的例子就是各种列表组件作为V">
 <meta property="og:type" content="article">
-<meta property="og:title" content="小站的开篇">
-<meta property="og:url" content="http://njuptjsy.github.io/2015/05/09/hello-world/index.html">
+<meta property="og:title" content="MVC模式">
+<meta property="og:url" content="http://njuptjsy.github.io/2015/06/08/MVC模式/index.html">
 <meta property="og:site_name" content="More Than Words">
-<meta property="og:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta property="og:description" content="基本概念MVC的主要作用是将应用程序的数据和界面分离，其中M表示Model代表模型，V表示view代表界面，C表示控制器控制M和V之间的联系。Android SDK也采用MVC。当View数据变化时，其通知Controller，由Controller操作Model进行相应的数据操作。将数据和视图分离之后跟换视图和模型是可以不影响对方，更利于程序维护。Android中典型的例子就是各种列表组件作为V">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="小站的开篇">
-<meta name="twitter:description" content="用下面四句话作为开篇
-所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。
-你是活了一万多天？还是活了一天 却重复了一万多次？
-说出来被人嘲笑的梦想，才有实现的价值。
-既然庸庸碌碌也难逃一死，何不奋起一搏？">
+<meta name="twitter:title" content="MVC模式">
+<meta name="twitter:description" content="基本概念MVC的主要作用是将应用程序的数据和界面分离，其中M表示Model代表模型，V表示view代表界面，C表示控制器控制M和V之间的联系。Android SDK也采用MVC。当View数据变化时，其通知Controller，由Controller操作Model进行相应的数据操作。将数据和视图分离之后跟换视图和模型是可以不影响对方，更利于程序维护。Android中典型的例子就是各种列表组件作为V">
 
     
     <link rel="alternative" href="/atom.xml" title="More Than Words" type="application/atom+xml">
@@ -85,20 +73,20 @@
 </div>
     </header>
     <div id="container">
-      <div id="main" class="post" itemscope itemprop="blogPost">
+      <div id="main" class="new" itemscope itemprop="blogPost">
   
 	<article itemprop="articleBody"> 
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/09/hello-world/" title="小站的开篇" itemprop="url">小站的开篇</a>
+      <a href="/2015/06/08/MVC模式/" title="MVC模式" itemprop="url">MVC模式</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-09T07:14:53.244Z" itemprop="datePublished"> 发表于 2015-05-09</time>
+    <time datetime="2015-06-08T07:14:27.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
     
   </p>
 </header>
@@ -107,20 +95,26 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
 		
-			
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#基本概念"><span class="toc-number">1.</span> <span class="toc-text">基本概念</span></a></li></ol>
 		
 		</div>
 		
-		<p>用下面四句话作为开篇</p>
-<p>所谓的光辉岁月，并不是以后，闪耀的日子，而是无人问津时，你对梦想的偏执。</p>
-<p>你是活了一万多天？还是活了一天 却重复了一万多次？</p>
-<p>说出来被人嘲笑的梦想，才有实现的价值。</p>
-<p>既然庸庸碌碌也难逃一死，何不奋起一搏？</p>
+		<h1 id="基本概念">基本概念</h1><p>MVC的主要作用是将应用程序的数据和界面分离，其中M表示Model代表模型，V表示view代表界面，C表示控制器控制M和V之间的联系。Android SDK也采用MVC。<br>当View数据变化时，其通知Controller，由Controller操作Model进行相应的数据操作。将数据和视图分离之后跟换视图和模型是可以不影响对方，更利于程序维护。Android中典型的例子就是各种列表组件作为View（ListView、GridView、Spinner等），各种适配器作为Controller（BaseAdapter、SimpleAdapter、ArrayAdapter、SimpleCousorAdaptr和CousorAdaptr），对于的Model有数组和Cursor等。当Model变化时，调用notifyDataSetChanged方法通知C，C通过getView重新绘制组件内容。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a>
+  </div>
 
 </div>
 
@@ -128,7 +122,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://njuptjsy.github.io/2015/05/09/hello-world/" data-title="小站的开篇 | More Than Words" data-tsina="null" class="share clearfix">
+	  <div data-url="http://njuptjsy.github.io/2015/06/08/MVC模式/" data-title="MVC模式 | More Than Words" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -142,13 +136,21 @@
 <nav class="article-nav clearfix">
  
  <div class="prev" >
- <a href="/2015/05/09/how-to-deploy-blog-in-github/" title="How to deploy blog on github">
+ <a href="/2015/06/08/阿里云实现listBucket-开发笔记/" title="阿里云实现listBucket--开发笔记">
   <strong>上一篇：</strong><br/>
   <span>
-  How to deploy blog on github</span>
+  阿里云实现listBucket--开发笔记</span>
 </a>
 </div>
 
+
+<div class="next">
+<a href="/2015/06/08/Android系统架构/"  title="MVC模式">
+ <strong>下一篇：</strong><br/> 
+ <span>MVC模式
+</span>
+</a>
+</div>
 
 </nav>
 
@@ -162,13 +164,6 @@
 
 </div>  
       <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
-
-  <div id="toc" class="toc-aside">
-  <strong class="toc-title">文章目录</strong>
- 
- 
- 
-  </div>
 
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
@@ -360,35 +355,6 @@ $(document).ready(function(){
 </script>
 
 
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var $this = $('.share'),
-      url = $this.attr('data-url'),
-      encodedUrl = encodeURIComponent(url),
-      title = $this.attr('data-title'),
-      tsina = $this.attr('data-tsina'),
-      description = $this.attr('description');
-  var html = [
-  '<a href="#" class="overlay" id="qrcode"></a>',
-  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
-  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
-  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
-  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
-  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
-  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
-  '<span title="Share to"></span>'
-  ].join('');
-  $this.append(html);
-  $('.article-share-qrcode').click(function(){
-    var imgSrc = $('#qrcode-pic').attr('data-src');
-    $('#qrcode-pic').attr('src', imgSrc);
-    $('#qrcode-pic').load(function(){
-        $('.qrcode strong').text(' ');
-    });
-  });
-});     
-</script>
-
 
 
 
@@ -468,4 +434,4 @@ $(document).ready(function(){
 <!-- Tiny_search End -->
 
   </body>
-</html>
+ </html>
