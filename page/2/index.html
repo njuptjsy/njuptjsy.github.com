@@ -81,6 +81,80 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/05/26/Android开发技巧-碎片/" title="Android开发技巧--碎片" itemprop="url">Android开发技巧--碎片</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-26T05:15:00.000Z" itemprop="datePublished"> 发表于 2015-05-26</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="概念总结">概念总结</h1><p>为了应付Android设备各种尺寸的屏幕，为这些设备提供一个统一的解决方案，Android推出了Fragment组件。一种可以嵌入活动当中的UI片段。Android提供了位于两个不同包下的Fragment对象，android.app.Fragment支持Android4.0以上的版本，另一个包主要是兼容低版本的Android系统。</p>
+<h2 id="简单实现">简单实现</h2><p>要实现对Fragment的使用，首要需要和普通的UI布局一样声明该Fragment对应的布局，接着新建一个类继承自android.app.Fragment的自定义类，复写其中的onCreateView方法在其中通过LayoutInflater将刚才定义的left_fragment动态的加载进来。下面是一个小例子：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">LinearLayout</span> <span class="attribute">xmlns:android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span></span><br><span class="line">	<span class="attribute">android:layout_width</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:layout_height</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:background</span>=<span class="value">"#00ff00"</span></span><br><span class="line">	<span class="attribute">android:orientation</span>=<span class="value">"vertical"</span> &gt;</span></span><br><span class="line">	</span><br><span class="line">	<span class="tag">&lt;<span class="title">TextView</span></span><br><span class="line">		<span class="attribute">android:layout_width</span>=<span class="value">"wrap_content"</span></span><br><span class="line">		<span class="attribute">android:layout_height</span>=<span class="value">"wrap_content"</span></span><br><span class="line">		<span class="attribute">android:layout_gravity</span>=<span class="value">"center_horizontal"</span></span><br><span class="line">		<span class="attribute">android:textSize</span>=<span class="value">"20sp"</span></span><br><span class="line">		<span class="attribute">android:text</span>=<span class="value">"This is right fragment"</span></span><br><span class="line">	/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>继承Fragment并复写其中onCreateView()<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LeftFragment</span> <span class="keyword">extends</span> <span class="title">Fragment</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">onCreateView</span><span class="params">(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">		View view = inflater.inflate(R.layout.left_fragment, container, <span class="keyword">false</span>);</span><br><span class="line">		<span class="keyword">return</span> view;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在布局文件中，可以通过了fragment标签添加碎片，其中通过android:name来制定相应的属性来显式指明要添加的碎片类名<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">fragment</span></span><br><span class="line">	<span class="attribute">android:id</span>=<span class="value">"@+id/left_fragment"</span></span><br><span class="line">	<span class="attribute">android:name</span>=<span class="value">"com.example.fragmenttest.LeftFragment"</span></span><br><span class="line">	<span class="attribute">android:layout_width</span>=<span class="value">"0dp"</span></span><br><span class="line">	<span class="attribute">android:layout_height</span>=<span class="value">"match_parent"</span></span><br><span class="line">	<span class="attribute">android:layout_weight</span>=<span class="value">"1"</span> /&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="动态的添加碎片">动态的添加碎片</h2><p>和上面的例子，首先需要声明碎片的布局文件，定义继承了Fragment的类并复写其中的onCreateView方法，在其中加载刚刚声明的布局文件。到这边都和全面一样，下面是在代码中实现动态添加碎片（碎片类名为AnotherRightFragment）<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">AnotherRightFragment fragment = <span class="keyword">new</span> AnotherRightFragment();</span><br><span class="line">FragmentManager fragmentManager = getFragmentManager();</span><br><span class="line">FragmentTransaction transaction = fragmentManager.beginTransaction();</span><br><span class="line">transaction.replace(R.id.right_layout, fragment);</span><br><span class="line">transaction.commit();</span><br></pre></td></tr></table></figure></p>
+<p>可以将上面的步骤总结如下：<br>1.新建一个待添加的碎片实例<br>2.在活动类中使用getFragmentManager()方法获取fragmentManager对象实例<br>3.利用fragmentManager对象实例调用beginTransaction方法开启一个事务，传入要替换的组件id和待添加的碎片实例，进行替换操作<br>4.提交事务</p>
+<h2 id="碎片中的返回栈">碎片中的返回栈</h2><p>为了像Activity一样利用backstack实现放回键退回到上一个界面，FragmentTransaction 中提供了一个addToBackStack()方法，可以用于将一个事务添加到返回栈中，只需要在transaction.replace方法后加入，transaction.addToBackStack(null);将这个事务加入到返回栈即可。其中传入的参数用于描述返回栈的名字。</p>
+<h2 id="碎片通信">碎片通信</h2><p>在活动实现与碎片通信是通过FragmentManager的findFragmentById方法，从布局文件相应的组件中获取的碎片类对象。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RightFragment rightFragment = (RightFragment) getFragmentManager().findFragmentById(R.id.right_fragment);</span><br></pre></td></tr></table></figure></p>
+<p>在碎片中实现与活动通信使用getActivity方法<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MainActivity activity = (MainActivity) getActivity();</span><br></pre></td></tr></table></figure></p>
+<p>碎片之间的通信也是通过活动组件，首先在一个活动组件中活动与其相关的活动类，接着利用这个活动去获得另一个碎片即可。</p>
+<h2 id="碎片生命周期">碎片生命周期</h2><p>首先onAttach()方法（当碎片和活动建立关联的时候调用）、onCreateView()方法（为碎片创建视图（加载布局）时调用）和onActivityCreated()方法（确保与碎片相关联的活动一定已经创建完毕的时候调用），回调完毕时碎片是可见的，他所相关的活动和其本身正处于运行状态。<br>碎片进入暂停状态是随着活动进如暂停转态，碎片也会进入暂停状态。<br>碎片进入停止状态的情况有，当活动进入停止状态时、调用了FragmentTransaction的remove和replace方法将碎片移除且在调用的addToBackStack方法。<br>碎片进入销毁状态的情况有，活动被销毁，调用了FragmentTransaction的remove和replace方法将碎片移除但没有在调用的addToBackStack方法，进入本状态依次回调onDestroyView()方法(当与碎片关联的视图被移除的时候调用）onDetach()方法（当碎片和活动解除关联的时候调用）。<br>将碎片的生命周期和活动一起考虑，各个函数回调的顺序见下图<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/%E7%A2%8E%E7%89%87%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png" alt="image"></p>
+<h2 id="使用限定符">使用限定符</h2><p>一个最简单的实现就是将两个相同名称不同内容的视图文件，一个单页模式的用于适应手机屏幕的布局文件存放到layout/目录下，将一个双页模式的用于适应屏幕屏幕的布局文件存放到layout-large/目录下，这样android会自动判断什么屏幕是large，在大屏幕上采用layout-large/目录下的布局文件，下表就是android默认的一些限定符的含义。<br><img src="https://raw.githubusercontent.com/njuptjsy/mobliecloudapp/master/CloudClient/uml/android%E9%99%90%E5%AE%9A%E7%AC%A6.png" alt="image"><br>自定义限定符，只需要新建相应的layout文件夹，如新建了layout-sw600dp/文件夹之后，当程序运行在屏幕宽度大于600dp 的设备上时就会加载layout-sw600dp/文件加下的文件</p>
+
+        
+        
+        <p class="article-more-link">
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Android/">Android</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Skills/">Skills</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+	  	<span></span>
+		<a href="/2015/05/26/Android开发技巧-碎片/#disqus_thread" class="comments-count-link">Comments</a>
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/05/25/Android开发技巧-广播/" title="Android开发技巧--广播" itemprop="url">Android开发技巧--广播</a>
   </h1>
   <p class="article-author">By
@@ -361,73 +435,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/14/阿里云SDK在Android上的一个bug/" title="阿里云SDK在Android上的一个bug" itemprop="url">阿里云SDK在Android上的一个bug</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Siyu Jin" target="_blank" itemprop="author">Siyu Jin</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-13T16:02:47.000Z" itemprop="datePublished"> 发表于 2015-05-14</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>开发需要要求和阿里云交互，于是就去阿里云官网找SDK，不得不说相比于AWS阿里云接口和文档上差距很大,可以看见<a href="http://develop.aliyun.com/sdk/java?spm=5176.383338.201.73.vuG8v2" target="_blank" rel="external">阿里云SDK</a>就支持JAVA、Python、.NET和PHP。好在他提供了一个Java SDK，原本觉得都是 Java 的环境，Android 上应该也没啥问题，结果发现有依赖上的冲突，运行时给了个 NoSuchMethodError<br>经过分析发现Android 框架中集成了 Apache 的 httpClient 包，阿里云 OSS Java SDK 也需要用 httpClient。异常是 OSSClient 构造所调的 ThreadSafeClientConnManager 构造方法。虽然依赖都是单独 jar 发布的，尝试过改变构建顺序、去除附加 jar 包等方案，结果依旧。</p>
-<p>最后结局方案是用第三方的一个SDK,用起来也很别扭，希望阿里早日解决对android的支持吧。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Work/">Work</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Android-Code/">Android Code</a><a href="/tags/Debug/">Debug</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/14/阿里云SDK在Android上的一个bug/#disqus_thread" class="comments-count-link">Comments</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">Next<span></span></a>
+    <a class="extend prev" rel="prev" href="/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">Next<span></span></a>
   </nav>
 
 </div>
@@ -447,7 +457,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Work/" title="Work">Work<sup>4</sup></a></li>
+			<li><a href="/categories/Work/" title="Work">Work<sup>5</sup></a></li>
 		  
 		
 		</ul>
@@ -473,6 +483,10 @@
 		
 			
 				<li><a href="/tags/CloudClient/" title="CloudClient">CloudClient<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CV/" title="CV">CV<sup>1</sup></a></li>
 			
 		
 		</ul>
